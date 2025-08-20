@@ -1,5 +1,6 @@
 # Nixploit
 
+```
  ██████   █████  ███                        ████            ███   █████   
 ░░██████ ░░███  ░░░                        ░░███           ░░░   ░░███    
  ░███░███ ░███  ████  █████ █████ ████████  ░███   ██████  ████  ███████  
@@ -11,7 +12,7 @@
                                   ░███                                    
                                   █████                                   
                                  ░░░░░                                    
-
+```
 
 Hackix is a **lightweight hacking environment** built with **Nix** and packaged into a **Docker image**.  
 
@@ -21,5 +22,5 @@ Hackix is a **lightweight hacking environment** built with **Nix** and packaged 
 - [ ] Add basic functionality
 - [ ] Add easy way to use volumes
 - [ ] Add easy way to use network
-- [ ] Custome Readme
+- [ ] Custom Readme
 - [ ] Add pipeline
