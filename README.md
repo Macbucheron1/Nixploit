@@ -9,7 +9,7 @@ incus image import ./result --alias nixploit
 
 2. Load the image
 ```bash
-incus launch nixploit <container_name>
+incus launch nixploit <container_name> -p default -p pentest-gui
 ```
 
 3. Open a shell
