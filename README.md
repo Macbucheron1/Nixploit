@@ -1,0 +1,19 @@
+# Nixploit 
+
+## Usage
+
+1. Build the image 
+```bash
+incus image import ./result --alias nixploit
+```
+
+2. Load the image
+```bash
+incus launch nixploit <container_name>
+```
+
+3. Open a shell
+```bash
+incus exec <container_name> login
+```
+

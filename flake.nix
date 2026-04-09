@@ -1,5 +1,5 @@
 {
-  description = "Pentest image based on NixOS build-image with Home Manager";
+  description = "Pentest Incus image based on NixOS with Home Manager";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
@@ -13,32 +13,13 @@
   outputs = { nixpkgs, home-manager, ... }:
     let
       system = "x86_64-linux";
-    in {
-      nixosConfigurations.pentest = nixpkgs.lib.nixosSystem {
-        inherit system;
-        modules = [
-          ./configuration.nix
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.root = import ./home.nix;
-          }
-        ];
+      incus-image = import ./incus-image.nix {
+        inherit nixpkgs home-manager system;
       };
-
-      nixosConfigurations.pentest-incus = nixpkgs.lib.nixosSystem {
-        inherit system;
-        modules = [
-          ./configuration.nix
-          "${nixpkgs}/nixos/modules/virtualisation/lxc-container.nix"
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.root = import ./home.nix;
-          }
-        ];
+    in {
+      packages.${system} = {
+        incus-image = incus-image;
+        default = incus-image;
       };
     };
 }
