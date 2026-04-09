@@ -1,25 +1,45 @@
-{ username ? "user", pkgs, ... }:
-{
-  home.username = username;
-  home.homeDirectory = "/home/${username}";
-  home.stateVersion = "25.05";
-
-  # Default packages
-  home.packages = (with pkgs; [
-    firefox-bin
-  ]);
-
-  # add package and configuration for specialty
-  imports = [
-    ./active-directory.nix
-    ./web.nix
-  ];
-
-  programs.home-manager.enable = true;
-
-  programs.bash = {
-    enable = true;
+{ username ? "user", pkgs, lib, config, ... }:
+let
+  myWordlists = pkgs.wordlists.override {
+    lists = with pkgs; [
+      rockyou
+      seclists
+    ];
   };
 
-  programs.zellij.enable = true;
+  # Script to quickly search through wordlists
+  fzf-wordlists = import ./scripts/fzf-wordlists.nix {
+    inherit pkgs;
+    wordlistsPkg = myWordlists;
+  };
+in
+{
+  imports = [
+    ./active-directory
+    ./web
+    ./common
+
+    ./shell.nix
+  ];
+
+  options.my.histories = lib.mkOption {
+    type = lib.types.attrsOf lib.types.path;
+    default = { };
+  };
+
+  config = {
+    home.username = username;
+    home.homeDirectory = "/home/${username}";
+    home.stateVersion = "25.05";
+
+    programs.home-manager.enable = true;
+
+    home.packages =
+      (with pkgs; [
+        firefox-bin
+        myWordlists
+      ]) ++ [
+        fzf-wordlists
+      ];
+  };
 }

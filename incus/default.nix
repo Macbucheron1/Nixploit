@@ -1,4 +1,4 @@
-{ nixpkgs, home-manager, burpsuite-nix, system }:
+{ nixpkgs, home-manager, nur, burpsuite-nix, system }:
 let
   pkgs = import nixpkgs {
     inherit system;
@@ -6,7 +6,7 @@ let
   };
 
   mkHost = import ../lib/mkHost.nix {
-    inherit nixpkgs home-manager burpsuite-nix;
+    inherit nixpkgs home-manager nur burpsuite-nix;
   };
 
   incusSystem = mkHost {

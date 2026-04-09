@@ -17,3 +17,11 @@ incus launch nixploit <container_name> -p default -p pentest-gui
 incus exec <container_name> login
 ```
 
+## Shortcut
+
+```
+# When taping a command, will suggest autocompletion using fzf
+alt tab
+
+
+```
