@@ -13,7 +13,7 @@
   outputs = { nixpkgs, home-manager, ... }:
     let
       system = "x86_64-linux";
-      incus-image = import ./incus-image.nix {
+      incus-image = import ./incus {
         inherit nixpkgs home-manager system;
       };
     in {

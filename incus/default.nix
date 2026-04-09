@@ -8,14 +8,14 @@ let
   incusSystem = nixpkgs.lib.nixosSystem {
     inherit system;
     modules = [
-      ./configuration.nix
+      ../nixos
       "${nixpkgs}/nixos/modules/virtualisation/lxc-container.nix"
       home-manager.nixosModules.home-manager
       {
         home-manager.useGlobalPkgs = true;
         home-manager.useUserPackages = true;
-        home-manager.users.root = import ./home.nix;
-        home-manager.users.user = import ./user.nix;
+        home-manager.users.root = import ../home/root.nix;
+        home-manager.users.user = import ../home/user.nix;
       }
     ];
   };
