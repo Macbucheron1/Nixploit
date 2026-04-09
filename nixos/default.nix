@@ -25,11 +25,11 @@
   ];
 
   nix.settings.sandbox = false;
-
   systemd.services.nix-daemon-socket-dir = {
     description = "Prepare Nix daemon socket directory";
-    wantedBy = [ "multi-user.target" ];
+    wantedBy = [ "sockets.target" ];
     before = [
+      "sockets.target"
       "nix-daemon.socket"
       "home-manager-user.service"
     ];
@@ -39,6 +39,18 @@
       chown root:root /nix/var/nix/daemon-socket
       chmod 0755 /nix/var/nix/daemon-socket
     '';
+  };
+  systemd.services."home-manager-${username}" = {
+    requires = [
+      "nix-daemon-socket-dir.service"
+      "nix-daemon.socket"
+    ];
+    after = [
+      "nix-daemon-socket-dir.service"
+      "nix-daemon.socket"
+      "nix-daemon.service"
+    ];
+    wants = [ "nix-daemon.socket" ];
   };
 
   i18n.defaultLocale = "en_US.UTF-8";
