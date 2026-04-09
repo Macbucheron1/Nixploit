@@ -8,9 +8,15 @@
 
   programs.bash = {
     enable = true;
-    bashrcExtra = ''
-      export PS1='[cacacacaca:\u@\h \W]\$ '
-    '';
+  };
+
+  programs.burp = {
+    enable = true;
+    settings = {
+        display.user_interface = {
+        look_and_feel = "Dark";
+      };
+    };
   };
 
   programs.zellij.enable = true;

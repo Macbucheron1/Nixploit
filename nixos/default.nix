@@ -25,14 +25,17 @@
   ];
 
   nix.settings.sandbox = false;
+
+  # Patch to make sure that the nix daemon is started
   systemd.services.nix-daemon-socket-dir = {
     description = "Prepare Nix daemon socket directory";
-    wantedBy = [ "sockets.target" ];
+    requiredBy = [ "nix-daemon.socket" ];
     before = [
-      "sockets.target"
       "nix-daemon.socket"
       "home-manager-user.service"
     ];
+    after = [ "local-fs.target" ];
+    unitConfig.DefaultDependencies = false;
     serviceConfig.Type = "oneshot";
     script = ''
       mkdir -p /nix/var/nix/daemon-socket

@@ -1,4 +1,4 @@
-{ nixpkgs, home-manager }:
+{ nixpkgs, home-manager, burpsuite-nix }:
 {
   system,
   hostname ? "pentest",
@@ -20,7 +20,12 @@ nixpkgs.lib.nixosSystem {
       home-manager.extraSpecialArgs = {
         inherit username;
       };
-      home-manager.users.${username} = import ../home;
+      home-manager.users.${username} = {
+        imports = [
+          ../home
+          burpsuite-nix.homeManagerModules.default
+        ];
+      };
     }
   ] ++ modules;
 }

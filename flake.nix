@@ -8,13 +8,18 @@
       url = "github:nix-community/home-manager/release-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    burpsuite-nix = {
+        url = "github:Red-Flake/burpsuite-nix";
+        inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { nixpkgs, home-manager, ... }:
+  outputs = { nixpkgs, home-manager, burpsuite-nix, ... }:
     let
       system = "x86_64-linux";
       incus-image = import ./incus {
-        inherit nixpkgs home-manager system;
+        inherit nixpkgs home-manager burpsuite-nix system;
       };
     in {
      packages.${system} = {

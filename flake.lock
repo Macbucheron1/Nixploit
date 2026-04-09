@@ -1,6 +1,48 @@
 {
   "nodes": {
+    "burpsuite-nix": {
+      "inputs": {
+        "home-manager": "home-manager",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1775546366,
+        "narHash": "sha256-Kbuieplv3hZ7OErBssuSI1PkuIUB64u3e+dPCisVSg0=",
+        "owner": "Red-Flake",
+        "repo": "burpsuite-nix",
+        "rev": "92cded561efded9316253a67dac0582ddb81992b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Red-Flake",
+        "repo": "burpsuite-nix",
+        "type": "github"
+      }
+    },
     "home-manager": {
+      "inputs": {
+        "nixpkgs": [
+          "burpsuite-nix",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1775544097,
+        "narHash": "sha256-fwI8PbrUT4W+z+J4TAS/D69So/MLan1WZjUsYQpoSvI=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "2bd16b16a77d68a1e14c1b4da725a6590181a706",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "home-manager_2": {
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
@@ -39,7 +81,8 @@
     },
     "root": {
       "inputs": {
-        "home-manager": "home-manager",
+        "burpsuite-nix": "burpsuite-nix",
+        "home-manager": "home-manager_2",
         "nixpkgs": "nixpkgs"
       }
     }
