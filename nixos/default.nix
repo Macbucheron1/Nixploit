@@ -1,18 +1,21 @@
-{ pkgs, lib, ... }:
+{ pkgs, lib, hostname ? "pentest", username ? "user", ... }:
 
 {
   boot.isContainer = true;
 
-  networking.hostName = "pentest";
+  networking.hostName = lib.mkDefault hostname;
 
   networking.nameservers = [ "1.1.1.1" "1.0.0.1" ];
 
   users.mutableUsers = false;
   users.users.root.password = "root";
-  users.users.user = {
+  users.users.${username} = {
     isNormalUser = true;
     password = "user";
+    extraGroups = [ "wheel" ];
   };
+
+  security.sudo.enable = true;
 
   nixpkgs.config.allowUnfree = true;
 
@@ -23,6 +26,21 @@
 
   nix.settings.sandbox = false;
 
+  systemd.services.nix-daemon-socket-dir = {
+    description = "Prepare Nix daemon socket directory";
+    wantedBy = [ "multi-user.target" ];
+    before = [
+      "nix-daemon.socket"
+      "home-manager-user.service"
+    ];
+    serviceConfig.Type = "oneshot";
+    script = ''
+      mkdir -p /nix/var/nix/daemon-socket
+      chown root:root /nix/var/nix/daemon-socket
+      chmod 0755 /nix/var/nix/daemon-socket
+    '';
+  };
+
   i18n.defaultLocale = "en_US.UTF-8";
   i18n.supportedLocales = [ "en_US.UTF-8/UTF-8" ];
 
@@ -31,7 +49,6 @@
     coreutils
     netexec
     firefox-bin
-    zellij
     burpsuite
   ];
 

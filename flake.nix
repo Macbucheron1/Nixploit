@@ -17,8 +17,7 @@
         inherit nixpkgs home-manager system;
       };
     in {
-      packages.${system} = {
-        incus-image = incus-image;
+     packages.${system} = {
         default = incus-image;
       };
     };

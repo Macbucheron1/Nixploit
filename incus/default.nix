@@ -5,18 +5,16 @@ let
     config.allowUnfree = true;
   };
 
-  incusSystem = nixpkgs.lib.nixosSystem {
+  mkHost = import ../lib/mkHost.nix {
+    inherit nixpkgs home-manager;
+  };
+
+  incusSystem = mkHost {
     inherit system;
+    hostname = "pentest";
+    username = "user";
     modules = [
-      ../nixos
       "${nixpkgs}/nixos/modules/virtualisation/lxc-container.nix"
-      home-manager.nixosModules.home-manager
-      {
-        home-manager.useGlobalPkgs = true;
-        home-manager.useUserPackages = true;
-        home-manager.users.root = import ../home/root.nix;
-        home-manager.users.user = import ../home/user.nix;
-      }
     ];
   };
 
@@ -26,6 +24,7 @@ in
 pkgs.runCommand "incus-image.tar.xz"
   {
     nativeBuildInputs = [
+      pkgs.bash
       pkgs.gnutar
       pkgs.xz
       pkgs.squashfsTools
@@ -33,30 +32,7 @@ pkgs.runCommand "incus-image.tar.xz"
       pkgs.coreutils
     ];
   } ''
-  set -euo pipefail
-
-  work="$(mktemp -d)"
-
-  metadata_tar="$(find "${metadataDrv}" -type f -name '*.tar.xz' | head -n1)"
-  squashfs_file="$(find "${squashfsDrv}" -type f -name '*.squashfs' | head -n1)"
-
-  test -n "$metadata_tar"
-  test -n "$squashfs_file"
-
-  mkdir -p "$work/meta" "$work/image" "$work/rootfs"
-
-  tar -xJf "$metadata_tar" -C "$work/meta"
-  unsquashfs -quiet -dest "$work/rootfs" "$squashfs_file"
-
-  test -f "$work/meta/metadata.yaml"
-
-  cp "$work/meta/metadata.yaml" "$work/image/"
-
-  if [ -d "$work/meta/templates" ]; then
-    cp -a "$work/meta/templates" "$work/image/"
-  fi
-
-  mv "$work/rootfs" "$work/image/rootfs"
-
-  tar -C "$work/image" -cJf "$out" .
-''
+  export metadataDrv="${metadataDrv}"
+  export squashfsDrv="${squashfsDrv}"
+  ${pkgs.bash}/bin/bash ${./build-image.sh}
+  ''
