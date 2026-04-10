@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ pkgs, lib, concatHistory, ... }:
 {
   home.packages = lib.mkAfter (with pkgs; [
     burpsuite
@@ -6,7 +6,7 @@
     wpscan
   ]);
 
-  my.histories.web = pkgs.concatText "web-history" [
+  my.histories.web = concatHistory "web-history" [
     ./history/feroxbuster
     ./history/wpscan
   ];

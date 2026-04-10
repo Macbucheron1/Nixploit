@@ -1,4 +1,4 @@
-{ username ? "user", pkgs, lib, config, ... }:
+{ username ? "user", pkgs, lib, ... }:
 let
   myWordlists = pkgs.wordlists.override {
     lists = with pkgs; [
@@ -28,6 +28,10 @@ in
   };
 
   config = {
+    _module.args = {
+      concatHistory = import ../lib/concatHistory.nix { inherit pkgs lib; };
+    };
+
     home.username = username;
     home.homeDirectory = "/home/${username}";
     home.stateVersion = "25.05";
