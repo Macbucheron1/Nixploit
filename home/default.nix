@@ -44,6 +44,7 @@ in
       (with pkgs; [
         firefox-bin
         myWordlists
+        wireshark
       ]) ++ [
         fzf-wordlists
       ];

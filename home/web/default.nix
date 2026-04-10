@@ -4,11 +4,13 @@
     burpsuite
     feroxbuster
     wpscan
+    whatweb
   ]);
 
   my.histories.web = concatHistory "web-history" [
     ./history/feroxbuster
     ./history/wpscan
+    ./history/whatweb
   ];
 
   programs.burp = {

@@ -2,10 +2,6 @@
 {
   boot.isContainer = true;
 
-  networking.hostName = lib.mkDefault hostname;
-
-  networking.nameservers = [ "1.1.1.1" "1.0.0.1" ];
-
   nixpkgs.config.allowUnfree = true;
 
   nix.settings.experimental-features = [
@@ -25,6 +21,8 @@
     ./theme.nix
     (import ./nix-patch.nix { inherit username; })
     (import ./users.nix { inherit username; })
+    (import ./network.nix { inherit lib hostname; })
+    (import ./cap-patch.nix { inherit pkgs lib; })
   ];
 
   system.stateVersion = "25.05";
