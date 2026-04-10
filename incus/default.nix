@@ -1,4 +1,4 @@
-{ nixpkgs, home-manager, nur, burpsuite-nix, system }:
+{ nixpkgs, home-manager, nur, stylix, burpsuite-nix, system, username, hostname }:
 let
   pkgs = import nixpkgs {
     inherit system;
@@ -6,13 +6,11 @@ let
   };
 
   mkHost = import ../lib/mkHost.nix {
-    inherit nixpkgs home-manager nur burpsuite-nix;
+    inherit nixpkgs home-manager nur stylix burpsuite-nix;
   };
 
   incusSystem = mkHost {
-    inherit system;
-    hostname = "pentest";
-    username = "user";
+    inherit system username hostname;
     modules = [
       "${nixpkgs}/nixos/modules/virtualisation/lxc-container.nix"
     ];

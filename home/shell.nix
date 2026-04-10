@@ -1,4 +1,4 @@
-{ username ? "user", pkgs, lib, config, ... }:
+{ username, pkgs, lib, config, ... }:
 let 
   cfg = config.my;
   finalHistory = pkgs.concatText "pentest-history" (lib.attrValues cfg.histories);

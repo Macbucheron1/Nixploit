@@ -1,4 +1,4 @@
-{ pkgs, lib, hostname ? "pentest", username ? "user", ... }:
+{ pkgs, lib, hostname, username, ... }:
 {
   boot.isContainer = true;
 
@@ -22,6 +22,7 @@
 
   imports = [
     ./gui.nix
+    ./theme.nix
     (import ./nix-patch.nix { inherit username; })
     (import ./users.nix { inherit username; })
   ];

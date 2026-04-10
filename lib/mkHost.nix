@@ -1,8 +1,8 @@
-{ nixpkgs, home-manager, nur, burpsuite-nix }:
+{ nixpkgs, home-manager, nur, stylix, burpsuite-nix }:
 {
   system,
-  hostname ? "pentest",
-  username ? "user",
+  hostname,
+  username,
   modules ? [ ],
   specialArgs ? { },
 }:
@@ -15,6 +15,7 @@ nixpkgs.lib.nixosSystem {
     ../nixos
     home-manager.nixosModules.home-manager
     nur.modules.nixos.default
+    stylix.nixosModules.stylix
     {
       home-manager.useGlobalPkgs = true;
       home-manager.useUserPackages = true;
