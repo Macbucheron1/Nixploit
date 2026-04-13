@@ -780,6 +780,22 @@
         "type": "github"
       }
     },
+    "neo4j44pkgs": {
+      "locked": {
+        "lastModified": 1706220439,
+        "narHash": "sha256-JMPlh3WoVVOSFSGdetBDKKkKkLNwnTqewFn+g1v2n/A=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "7a339d87931bba829f68e94621536cad9132971a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "7a339d87931bba829f68e94621536cad9132971a",
+        "type": "github"
+      }
+    },
     "nix-index-database": {
       "inputs": {
         "nixpkgs": [
@@ -1070,13 +1086,35 @@
         "type": "github"
       }
     },
+    "redflake-packages": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1775620187,
+        "narHash": "sha256-F1NFrV6ByHzRmUqYbxt9WdIP1zRj8Y3Z0MmhFykoP0U=",
+        "owner": "Red-Flake",
+        "repo": "packages",
+        "rev": "85eba6e2fe5b2794b1e46ed5de6e82eefe65008a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Red-Flake",
+        "repo": "packages",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "burpsuite-nix": "burpsuite-nix",
         "home-manager": "home-manager_2",
         "mac-nixos": "mac-nixos",
+        "neo4j44pkgs": "neo4j44pkgs",
         "nixpkgs": "nixpkgs_2",
         "nur": "nur_3",
+        "redflake-packages": "redflake-packages",
         "stylix": "stylix_2"
       }
     },

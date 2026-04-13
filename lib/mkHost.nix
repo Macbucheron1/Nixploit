@@ -1,4 +1,4 @@
-{ nixpkgs, home-manager, nur, stylix, burpsuite-nix, mac-nixos }:
+{ nixpkgs, home-manager, nur, stylix, burpsuite-nix, mac-nixos, redflake-packages, neo4j44pkgs }:
 {
   system,
   hostname,
@@ -9,7 +9,7 @@
 nixpkgs.lib.nixosSystem {
   inherit system;
   specialArgs = specialArgs // {
-    inherit hostname username;
+    inherit hostname username redflake-packages neo4j44pkgs;
   };
   modules = [
     ../nixos

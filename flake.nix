@@ -28,9 +28,16 @@
       url = "github:Macbucheron1/mac-nixos";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    redflake-packages = {
+      url = "github:Red-Flake/packages";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    neo4j44pkgs.url = "github:NixOS/nixpkgs/7a339d87931bba829f68e94621536cad9132971a";
   };
 
-  outputs = { nixpkgs, home-manager, nur, stylix, burpsuite-nix, mac-nixos, ... }:
+  outputs = { nixpkgs, home-manager, nur, stylix, burpsuite-nix, mac-nixos, redflake-packages, neo4j44pkgs, ... }:
     let
       system = "x86_64-linux";
 
@@ -40,7 +47,7 @@
       # ----------------
 
       incus-image = import ./incus {
-        inherit nixpkgs home-manager nur stylix burpsuite-nix mac-nixos system username hostname;
+        inherit nixpkgs home-manager nur stylix burpsuite-nix mac-nixos redflake-packages neo4j44pkgs system username hostname;
       };
     in {
      packages.${system} = {

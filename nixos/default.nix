@@ -1,4 +1,4 @@
-{ pkgs, lib, hostname, username, ... }:
+{ config, pkgs, lib, hostname, username, redflake-packages, neo4j44pkgs, ... }:
 {
   boot.isContainer = true;
 
@@ -19,6 +19,8 @@
   imports = [
     ./gui.nix
     ./theme.nix
+    redflake-packages.nixosModules.bloodhound-ce
+    (import ./bloodhound.nix { inherit config pkgs lib neo4j44pkgs; })
     (import ./nix-patch.nix { inherit username; })
     (import ./users.nix { inherit username; })
     (import ./network.nix { inherit lib hostname; })
