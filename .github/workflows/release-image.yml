@@ -14,20 +14,31 @@ jobs:
 
     steps:
       - name: Reject non-semver tags
+        shell: bash
         run: |
-          case "${GITHUB_REF_NAME}" in
-            v[0-9]*.[0-9]*.[0-9]*) ;;
-            *)
-              echo "Invalid version tag: ${GITHUB_REF_NAME}"
-              exit 1
-              ;;
-          esac
+          set -euo pipefail
+          [[ "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo "Invalid version tag: ${GITHUB_REF_NAME}"
+            exit 1
+          }
 
       - uses: actions/checkout@v4
 
-      - uses: DeterminateSystems/nix-installer-action@v16
+      - name: Install Nix
+        uses: nixbuild/nix-quick-install-action@v34
+        with:
+          nix_conf: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+            keep-env-derivations = true
+            keep-outputs = true
 
-      - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - name: Restore and save Nix store
+        uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', 'flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          gc-max-store-size-linux: 6G
 
       - name: Free disk space
         run: |
@@ -40,7 +51,9 @@ jobs:
         run: nix build .#tarball --print-build-logs
 
       - name: Prepare release asset
+        shell: bash
         run: |
+          set -euo pipefail
           mkdir -p dist
           cp -L result "dist/nixploit-incus-image-${GITHUB_REF_NAME}.tar.xz"
 
@@ -57,4 +70,4 @@ jobs:
         run: |
           gh release create "${GITHUB_REF_NAME}" dist/* \
             --title "${GITHUB_REF_NAME}" \
-            --generate-notes
+            --generate-notes           --generate-notes
