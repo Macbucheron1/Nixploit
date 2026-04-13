@@ -98,13 +98,15 @@ incus_cmd network show nixploit-net >/dev/null 2>&1 || incus_cmd network create 
 incus_cmd network set nixploit-net ipv4.dhcp=true ipv4.nat=true ipv6.address=none
 check_firewall_dhcp
 incus_cmd profile show pentest-storage >/dev/null 2>&1 || incus_cmd profile create pentest-storage
-sudo sh -c "incus profile edit pentest-storage < incus/pentest-storage.yaml"
+sudo sh -c "incus profile edit pentest-storage < \"${SCRIPT_DIR}/incus/storage.yaml\""
 incus_cmd profile show pentest-net >/dev/null 2>&1 || incus_cmd profile create pentest-net
-sudo sh -c "incus profile edit pentest-net < incus/pentest-net.yaml"
+sudo sh -c "incus profile edit pentest-net < \"${SCRIPT_DIR}/incus/net.yaml\""
 incus_cmd profile show pentest-gui >/dev/null 2>&1 || incus_cmd profile create pentest-gui
-sed "s|__OPENGL_DRIVER_BUNDLE__|${OPENGL_DRIVER_BUNDLE}|g" incus/pentest-profil.yaml | sudo incus profile edit pentest-gui
+sudo sh -c "incus profile edit pentest-gui < \"${SCRIPT_DIR}/incus/profil.yaml\""
+incus_cmd profile show pentest-gpu >/dev/null 2>&1 || incus_cmd profile create pentest-gpu
+sed "s|__OPENGL_DRIVER_BUNDLE__|${OPENGL_DRIVER_BUNDLE}|g" "${SCRIPT_DIR}/incus/gpu.yaml" | sudo incus profile edit pentest-gpu
 incus_cmd image delete nixploit || true
 incus_cmd delete pentest -f || true
 incus_cmd image import "$metadata_tar" "$squashfs_file" --alias nixploit
-incus_cmd launch nixploit pentest -p pentest-storage -p pentest-net -p pentest-gui
+incus_cmd launch nixploit pentest -p pentest-storage -p pentest-net -p pentest-gui -p pentest-gpu
 verify_container_dhcp

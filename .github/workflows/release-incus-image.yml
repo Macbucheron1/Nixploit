@@ -23,23 +23,18 @@ jobs:
               ;;
           esac
 
-      - name: Maximize build space
-        uses: easimon/maximize-build-space@v10
-        with:
-          root-reserve-mb: 512
-          temp-reserve-mb: 100
-          swap-size-mb: 1024
-          remove-dotnet: 'true'
-          remove-android: 'true'
-          remove-haskell: 'true'
-          remove-codeql: 'true'
-          remove-docker-images: 'true'
-
       - uses: actions/checkout@v4
 
       - uses: DeterminateSystems/nix-installer-action@v16
 
       - uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
 
       - name: Build
         run: nix build .#tarball --print-build-logs
