@@ -23,9 +23,14 @@
         url = "github:Red-Flake/burpsuite-nix";
         inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    mac-nixos = {
+      url = "github:Macbucheron1/mac-nixos";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { nixpkgs, home-manager, nur, stylix, burpsuite-nix, ... }:
+  outputs = { nixpkgs, home-manager, nur, stylix, burpsuite-nix, mac-nixos, ... }:
     let
       system = "x86_64-linux";
 
@@ -35,7 +40,7 @@
       # ----------------
 
       incus-image = import ./incus {
-        inherit nixpkgs home-manager nur stylix burpsuite-nix system username hostname;
+        inherit nixpkgs home-manager nur stylix burpsuite-nix mac-nixos system username hostname;
       };
     in {
      packages.${system} = {

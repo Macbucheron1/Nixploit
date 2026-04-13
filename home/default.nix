@@ -1,4 +1,4 @@
-{ username, pkgs, lib, ... }:
+{ username, mac-nixos, pkgs, lib, ... }:
 let
   # Custom wordlists. Search them in nixpkgs to add more or wrap them yourself
   myWordlists = pkgs.wordlists.override {
@@ -48,6 +48,8 @@ in
         openvpn
       ]) ++ [
         fzf-wordlists
+      ] ++ [
+        mac-nixos.packages.${pkgs.system}.nvim
       ];
   };
 }

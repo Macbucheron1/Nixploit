@@ -1,4 +1,4 @@
-{ nixpkgs, home-manager, nur, stylix, burpsuite-nix }:
+{ nixpkgs, home-manager, nur, stylix, burpsuite-nix, mac-nixos }:
 {
   system,
   hostname,
@@ -20,7 +20,7 @@ nixpkgs.lib.nixosSystem {
       home-manager.useGlobalPkgs = true;
       home-manager.useUserPackages = true;
       home-manager.extraSpecialArgs = {
-        inherit username;
+        inherit username mac-nixos;
       };
       nixpkgs.overlays = [ nur.overlays.default ];
       home-manager.users.${username} = {
