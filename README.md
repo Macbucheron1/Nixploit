@@ -25,9 +25,7 @@ alt tab
 ### To add
 
 - bloodhound
-- openvpn
 - neovim
-- eza as ls
 
 ## To do 
 
