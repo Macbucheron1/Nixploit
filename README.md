@@ -2,26 +2,33 @@
 
 ## Usage
 
-1. Build the image 
-```bash
-incus image import ./result --alias nixploit
-```
+On the host, make sure the firewall allows DHCPv4 requests from the Incus bridge
+`nixploit-net` to the host DHCP server, i.e. UDP destination port 67. 
 
-2. Load the image
 ```bash
-incus launch nixploit <container_name> -p default -p pentest-gui
-```
-
-3. Open a shell
-```bash
-incus exec <container_name> login
+chmod +x maker.sh
+./maker.sh
 ```
 
 ## Shortcut
 
 ```
-# When taping a command, will suggest autocompletion using fzf
+# When tapping a command, will suggest autocompletion using fzf
 alt tab
-
-
 ```
+
+### a packager
+
+- event monitor
+- exegol-history
+
+### To add
+
+- bloodhound
+- openvpn
+- neovim
+- eza as ls
+
+## To do 
+
+- wrapper

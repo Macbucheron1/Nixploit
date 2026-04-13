@@ -15,5 +15,6 @@
     ./history/ligolo-ng
     ./history/john-the-ripper
     ./history/metasploit
+    ./history/hashcat
   ];
 }

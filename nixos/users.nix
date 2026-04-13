@@ -13,7 +13,7 @@
     password = "user";
     # ----------------
 
-    extraGroups = [ "wheel" ];
+    extraGroups = [ "wheel" "video" "render" ];
   };
 
   security.sudo.enable = true;

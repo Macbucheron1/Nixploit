@@ -1,6 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+OPENGL_DRIVER_BUNDLE="${SCRIPT_DIR}/.cache/opengl-driver"
+
+prepare_opengl_driver_bundle() {
+  if [[ ! -d /run/opengl-driver ]]; then
+    echo "GPU bundle error: /run/opengl-driver is missing on the host." >&2
+    return 1
+  fi
+
+  rm -rf "${OPENGL_DRIVER_BUNDLE}"
+  mkdir -p "${OPENGL_DRIVER_BUNDLE}"
+
+  # Incus can mount the host driver tree into the container, but the NixOS
+  # opengl-driver output is full of absolute symlinks back into the host
+  # /nix/store. Copying with -L materializes those symlinks into real files so
+  # the container can dlopen NVIDIA/OpenCL libraries without mounting the host
+  # store paths directly.
+  cp -aL /run/opengl-driver/. "${OPENGL_DRIVER_BUNDLE}/"
+}
+
 check_firewall_dhcp() {
   local rules
 
@@ -49,6 +69,7 @@ verify_container_dhcp() {
 }
 
 nix build .
+prepare_opengl_driver_bundle
 incus storage show nixploit-storage >/dev/null 2>&1 || incus storage create nixploit-storage dir
 incus network show nixploit-net >/dev/null 2>&1 || incus network create nixploit-net ipv4.address=auto ipv4.nat=true ipv6.address=none
 incus network set nixploit-net ipv4.dhcp=true ipv4.nat=true ipv6.address=none
@@ -58,7 +79,7 @@ incus profile edit pentest-storage < incus/pentest-storage.yaml
 incus profile show pentest-net >/dev/null 2>&1 || incus profile create pentest-net
 incus profile edit pentest-net < incus/pentest-net.yaml
 incus profile show pentest-gui >/dev/null 2>&1 || incus profile create pentest-gui
-incus profile edit pentest-gui < incus/pentest-profil.yaml
+sed "s|__OPENGL_DRIVER_BUNDLE__|${OPENGL_DRIVER_BUNDLE}|g" incus/pentest-profil.yaml | incus profile edit pentest-gui
 incus image delete nixploit || true
 incus delete pentest -f || true
 incus image import ./result --alias nixploit

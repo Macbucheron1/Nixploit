@@ -23,6 +23,7 @@
     (import ./users.nix { inherit username; })
     (import ./network.nix { inherit lib hostname; })
     (import ./cap-patch.nix { inherit pkgs lib; })
+    (import ./gpu.nix { inherit pkgs lib; })
   ];
 
   system.stateVersion = "25.05";

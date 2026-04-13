@@ -1,6 +1,6 @@
 { pkgs, lib, concatHistory, ... }:
 {
-  home.packages = lib.mkAfter (with pkgs; [
+  home.packages = lib.mkAfter ((with pkgs; [
     netexec
     certipy
     responder
@@ -10,7 +10,7 @@
   ]) ++ (with pkgs.python313Packages; [
     bloodyad
     impacket
-  ]);
+  ]));
 
   my.histories.activeDirectory = concatHistory "ad-history" [
     ./history/certipy
@@ -18,5 +18,7 @@
     ./history/bloodyAD
     ./history/responder
     ./history/kerberos
+    ./history/impacket
+    ./history/evil-winrm
   ];
 }
