@@ -4,13 +4,21 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 OPENGL_DRIVER_BUNDLE="${SCRIPT_DIR}/.cache/opengl-driver"
 
+incus_cmd() {
+  sudo incus "$@"
+}
+
 prepare_opengl_driver_bundle() {
   if [[ ! -d /run/opengl-driver ]]; then
     echo "GPU bundle error: /run/opengl-driver is missing on the host." >&2
     return 1
   fi
 
-  rm -rf "${OPENGL_DRIVER_BUNDLE}"
+  if [[ -e "${OPENGL_DRIVER_BUNDLE}" && ! -w "${OPENGL_DRIVER_BUNDLE}" ]]; then
+    sudo rm -rf "${OPENGL_DRIVER_BUNDLE}"
+  else
+    rm -rf "${OPENGL_DRIVER_BUNDLE}"
+  fi
   mkdir -p "${OPENGL_DRIVER_BUNDLE}"
 
   # Incus can mount the host driver tree into the container, but the NixOS
@@ -55,7 +63,7 @@ verify_container_dhcp() {
 
   echo "Waiting for DHCP on pentest eth0..."
   for _ in {1..30}; do
-    ipv4="$(incus exec pentest -- sh -c "ip -4 -o addr show dev eth0 scope global | awk '{print \$4; exit}'" 2>/dev/null || true)"
+    ipv4="$(incus_cmd exec pentest -- sh -c "ip -4 -o addr show dev eth0 scope global | awk '{print \$4; exit}'" 2>/dev/null || true)"
     if [[ -n "$ipv4" && "$ipv4" != 169.254.* ]]; then
       echo "DHCP OK: pentest got $ipv4 on eth0."
       return 0
@@ -64,24 +72,39 @@ verify_container_dhcp() {
   done
 
   echo "DHCP failed: pentest did not get a usable IPv4 address on eth0." >&2
-  incus exec pentest -- journalctl -u dhcpcd --no-pager -b -n 60 >&2 || true
+  incus_cmd exec pentest -- journalctl -u dhcpcd --no-pager -b -n 60 >&2 || true
   return 1
 }
 
-nix build .
+mapfile -t image_paths < <(nix build .#metadata .#squashfs --no-link --print-out-paths)
+if [[ "${#image_paths[@]}" -ne 2 ]]; then
+  echo "Expected metadata and squashfs build outputs, got ${#image_paths[@]}." >&2
+  exit 1
+fi
+
+metadata_path="${image_paths[0]}"
+squashfs_path="${image_paths[1]}"
+metadata_tar="$(find "$metadata_path" -type f -name '*.tar.xz' | head -n1)"
+squashfs_file="$(find "$squashfs_path" -type f -name '*.squashfs' | head -n1)"
+
+if [[ -z "${metadata_tar}" || -z "${squashfs_file}" ]]; then
+  echo "Failed to resolve metadata tarball or squashfs file from Nix outputs." >&2
+  exit 1
+fi
+
 prepare_opengl_driver_bundle
-incus storage show nixploit-storage >/dev/null 2>&1 || incus storage create nixploit-storage dir
-incus network show nixploit-net >/dev/null 2>&1 || incus network create nixploit-net ipv4.address=auto ipv4.nat=true ipv6.address=none
-incus network set nixploit-net ipv4.dhcp=true ipv4.nat=true ipv6.address=none
+incus_cmd storage show nixploit-storage >/dev/null 2>&1 || incus_cmd storage create nixploit-storage dir
+incus_cmd network show nixploit-net >/dev/null 2>&1 || incus_cmd network create nixploit-net ipv4.address=auto ipv4.nat=true ipv6.address=none
+incus_cmd network set nixploit-net ipv4.dhcp=true ipv4.nat=true ipv6.address=none
 check_firewall_dhcp
-incus profile show pentest-storage >/dev/null 2>&1 || incus profile create pentest-storage
-incus profile edit pentest-storage < incus/pentest-storage.yaml
-incus profile show pentest-net >/dev/null 2>&1 || incus profile create pentest-net
-incus profile edit pentest-net < incus/pentest-net.yaml
-incus profile show pentest-gui >/dev/null 2>&1 || incus profile create pentest-gui
-sed "s|__OPENGL_DRIVER_BUNDLE__|${OPENGL_DRIVER_BUNDLE}|g" incus/pentest-profil.yaml | incus profile edit pentest-gui
-incus image delete nixploit || true
-incus delete pentest -f || true
-incus image import ./result --alias nixploit
-incus launch nixploit pentest -p pentest-storage -p pentest-net -p pentest-gui
+incus_cmd profile show pentest-storage >/dev/null 2>&1 || incus_cmd profile create pentest-storage
+sudo sh -c "incus profile edit pentest-storage < incus/pentest-storage.yaml"
+incus_cmd profile show pentest-net >/dev/null 2>&1 || incus_cmd profile create pentest-net
+sudo sh -c "incus profile edit pentest-net < incus/pentest-net.yaml"
+incus_cmd profile show pentest-gui >/dev/null 2>&1 || incus_cmd profile create pentest-gui
+sed "s|__OPENGL_DRIVER_BUNDLE__|${OPENGL_DRIVER_BUNDLE}|g" incus/pentest-profil.yaml | sudo incus profile edit pentest-gui
+incus_cmd image delete nixploit || true
+incus_cmd delete pentest -f || true
+incus_cmd image import "$metadata_tar" "$squashfs_file" --alias nixploit
+incus_cmd launch nixploit pentest -p pentest-storage -p pentest-net -p pentest-gui
 verify_container_dhcp

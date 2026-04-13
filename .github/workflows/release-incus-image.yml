@@ -1,0 +1,53 @@
+name: build-nixploit-image
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Reject non-semver tags
+        run: |
+          case "${GITHUB_REF_NAME}" in
+            v[0-9]*.[0-9]*.[0-9]*) ;;
+            *)
+              echo "Invalid version tag: ${GITHUB_REF_NAME}"
+              exit 1
+              ;;
+          esac
+
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v16
+
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Build
+        run: nix build .#tarball --print-build-logs
+
+      - name: Prepare release asset
+        run: |
+          mkdir -p dist
+          cp -L result "dist/nixploit-incus-image-${GITHUB_REF_NAME}.tar.xz"
+
+      - name: Upload built image
+        uses: actions/upload-artifact@v4
+        with:
+          name: nixploit-image-${{ github.ref_name }}
+          path: dist/*
+          if-no-files-found: error
+
+      - name: Create GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" dist/* \
+            --title "${GITHUB_REF_NAME}" \
+            --generate-notes

@@ -1,4 +1,4 @@
-description: Network profile for pentest container
+description: Network profile for nixploit container
 devices:
   eth0:
     type: nic

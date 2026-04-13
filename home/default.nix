@@ -45,6 +45,7 @@ in
         firefox-bin
         myWordlists
         wireshark
+        openvpn
       ]) ++ [
         fzf-wordlists
       ];

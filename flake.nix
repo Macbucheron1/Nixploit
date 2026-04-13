@@ -39,7 +39,10 @@
       };
     in {
      packages.${system} = {
-        default = incus-image;
+        default = incus-image.default;
+        tarball = incus-image.tarball;
+        metadata = incus-image.metadata;
+        squashfs = incus-image.squashfs;
       };
     };
 }
