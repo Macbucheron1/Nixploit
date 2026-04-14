@@ -3,11 +3,14 @@
   # allow  the unix group 100 to use ICMP socks
   boot.kernel.sysctl."net.ipv4.ping_group_range" = "100 100";
 
+  networking = {
+    nameservers = [ "8.8.8.8" "1.1.1.1" ];
 
-  networking.hostName = lib.mkDefault hostname;
+    hostName = lib.mkDefault hostname;
 
-  networking.interfaces.eth0.useDHCP = lib.mkDefault true;
-
+    interfaces.eth0.useDHCP = lib.mkDefault true;
+  };
+  
   systemd.services.dhcpcd-var-run = {
     description = "Prepare /var/run for dhcpcd";
     requiredBy = [ "dhcpcd.service" ];
@@ -20,5 +23,6 @@
       mkdir -p /run/dhcpcd
     '';
   };
+
 
 }

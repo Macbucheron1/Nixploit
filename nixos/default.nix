@@ -14,6 +14,7 @@
   environment.systemPackages = with pkgs; [
     bashInteractive
     coreutils
+    busybox
   ];
 
   imports = [

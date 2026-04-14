@@ -58,6 +58,72 @@ check_firewall_dhcp() {
   echo "The container launch will continue; DHCP will be verified after startup." >&2
 }
 
+check_firewall_dns() {
+  local rules nixos_fw_rules
+
+  if command -v nft >/dev/null 2>&1 && rules="$(sudo nft list ruleset 2>/dev/null)"; then
+    if printf '%s\n' "$rules" | grep -Fq 'table inet nixos-fw {'; then
+      nixos_fw_rules="$(
+        printf '%s\n' "$rules" | awk '
+          /^table inet nixos-fw \{/ { in_table = 1 }
+          in_table { print }
+          in_table && /^\}/ { exit }
+        '
+      )"
+
+      if printf '%s\n' "$nixos_fw_rules" | grep -Eq 'iifname "nixploit-net".*udp dport 53.*accept|udp dport 53.*iifname "nixploit-net".*accept'; then
+        echo "Firewall precheck OK: nixos-fw appears to allow DNS/UDP on nixploit-net."
+      else
+        echo "Firewall precheck warning: nixos-fw is active, but no allow rule for DNS/UDP on nixploit-net was found." >&2
+      fi
+
+      if printf '%s\n' "$nixos_fw_rules" | grep -Eq 'iifname "nixploit-net".*tcp dport 53.*accept|tcp dport 53.*iifname "nixploit-net".*accept'; then
+        echo "Firewall precheck OK: nixos-fw appears to allow DNS/TCP on nixploit-net."
+        return 0
+      fi
+
+      echo "Firewall precheck warning: nixos-fw is active, but no allow rule for DNS/TCP on nixploit-net was found." >&2
+      echo "The container launch will continue; Incus bridge DNS may still fail even if Incus installed its own nft rules." >&2
+      return 0
+    fi
+
+    if printf '%s\n' "$rules" | grep -Eq 'iifname "nixploit-net".*udp dport 53.*accept|udp dport 53.*iifname "nixploit-net".*accept'; then
+      echo "Firewall precheck OK: nft appears to allow DNS/UDP on nixploit-net."
+    else
+      echo "Firewall precheck warning: nft is active, but no allow rule for DNS/UDP on nixploit-net was found." >&2
+    fi
+
+    if printf '%s\n' "$rules" | grep -Eq 'iifname "nixploit-net".*tcp dport 53.*accept|tcp dport 53.*iifname "nixploit-net".*accept'; then
+      echo "Firewall precheck OK: nft appears to allow DNS/TCP on nixploit-net."
+      return 0
+    fi
+
+    echo "Firewall precheck warning: nft is active, but no allow rule for DNS/TCP on nixploit-net was found." >&2
+    echo "The container launch will continue; DNS will likely fail if the bridge DNS is firewalled." >&2
+    return 0
+  fi
+
+  if command -v iptables >/dev/null 2>&1 && rules="$(sudo iptables -S 2>/dev/null)"; then
+    if printf '%s\n' "$rules" | grep -Eq '(-i nixploit-net|-A .*nixploit-net).*(-p udp).*--dport 53.*-j ACCEPT|(-p udp).*--dport 53.*(-i nixploit-net|-A .*nixploit-net).*-j ACCEPT'; then
+      echo "Firewall precheck OK: iptables appears to allow DNS/UDP on nixploit-net."
+    else
+      echo "Firewall precheck warning: iptables is active, but no allow rule for DNS/UDP on nixploit-net was found." >&2
+    fi
+
+    if printf '%s\n' "$rules" | grep -Eq '(-i nixploit-net|-A .*nixploit-net).*(-p tcp).*--dport 53.*-j ACCEPT|(-p tcp).*--dport 53.*(-i nixploit-net|-A .*nixploit-net).*-j ACCEPT'; then
+      echo "Firewall precheck OK: iptables appears to allow DNS/TCP on nixploit-net."
+      return 0
+    fi
+
+    echo "Firewall precheck warning: iptables is active, but no allow rule for DNS/TCP on nixploit-net was found." >&2
+    echo "The container launch will continue; DNS will likely fail if the bridge DNS is firewalled." >&2
+    return 0
+  fi
+
+  echo "Skipping firewall DNS precheck: no readable nft/iptables ruleset." >&2
+  echo "The container launch will continue; DNS may fail if the bridge DNS is firewalled." >&2
+}
+
 verify_container_dhcp() {
   local ipv4
 
@@ -97,6 +163,7 @@ incus_cmd storage show nixploit-storage >/dev/null 2>&1 || incus_cmd storage cre
 incus_cmd network show nixploit-net >/dev/null 2>&1 || incus_cmd network create nixploit-net ipv4.address=auto ipv4.nat=true ipv6.address=none
 incus_cmd network set nixploit-net ipv4.dhcp=true ipv4.nat=true ipv6.address=none
 check_firewall_dhcp
+check_firewall_dns
 incus_cmd profile show pentest-storage >/dev/null 2>&1 || incus_cmd profile create pentest-storage
 sudo sh -c "incus profile edit pentest-storage < \"${SCRIPT_DIR}/incus/storage.yaml\""
 incus_cmd profile show pentest-net >/dev/null 2>&1 || incus_cmd profile create pentest-net

@@ -20,5 +20,6 @@
 
   imports = [
     ./firefox.nix 
+    ./codex.nix
   ];
 }

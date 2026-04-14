@@ -22,12 +22,10 @@ alt tab
 - event monitor
 - exegol-history
 
-### To add
+### Wrapper
 
-- bloodhound
-- neovim
+- GPU detection & passing
+- wayland & x11 socket detecion & passing
+- network mode selection 
+- vpn start 
 
-## To do 
-
-- wrapper
-- finish firefox personnalisation

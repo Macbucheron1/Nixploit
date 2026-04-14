@@ -20,5 +20,9 @@
         look_and_feel = "Dark";
       };
     };
+    extensions = {
+      "json-web-tokens".enable = true;
+      "mcp-server".enable = true;
+    };
   };
 }

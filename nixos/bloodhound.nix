@@ -45,7 +45,6 @@ in
     description = "Ensure BloodHound PostgreSQL user and schema permissions";
     after = [ "postgresql.service" ];
     requires = [ "postgresql.service" ];
-    wantedBy = [ "multi-user.target" ];
     path = [ config.services.postgresql.package ];
     serviceConfig = {
       Type = "oneshot";
@@ -55,7 +54,6 @@ in
     script = ''
       set -eu
 
-      # Create role if missing
       psql -d postgres <<'EOSQL'
         SELECT format(
           'CREATE ROLE bloodhound WITH LOGIN PASSWORD %L CREATEDB',
@@ -67,7 +65,6 @@ in
         \gexec
       EOSQL
 
-      # Create database if missing
       psql -d postgres <<'EOSQL'
         SELECT 'CREATE DATABASE bloodhound OWNER bloodhound'
         WHERE NOT EXISTS (
@@ -76,7 +73,6 @@ in
         \gexec
       EOSQL
 
-      # Apply the exact fixes that proved necessary
       psql -d postgres   -c "ALTER DATABASE bloodhound OWNER TO bloodhound;"
       psql -d bloodhound -c "ALTER SCHEMA public OWNER TO bloodhound;"
       psql -d bloodhound -c "GRANT USAGE, CREATE ON SCHEMA public TO bloodhound;"
@@ -172,7 +168,6 @@ in
     };
   };
 
-  # Minimal local patch: writable collectors directory
   systemd.services.bloodhound-ce.serviceConfig.StateDirectory = lib.mkAfter [
     "bloodhound-ce/collectors"
   ];
@@ -192,9 +187,46 @@ in
     "bhe_collectors_base_path=/var/lib/bloodhound-ce/collectors"
   ];
 
+  # Stack installed/configured, but not started at boot
+  systemd.services = {
+    bloodhound-ce.wantedBy = lib.mkForce [ ];
+    neo4j.wantedBy = lib.mkForce [ ];
+    postgresql.wantedBy = lib.mkForce [ ];
+    postgresql-ensure-users.wantedBy = lib.mkForce [ ];
+  };
+
   environment.systemPackages = with pkgs; [
-    firefox
-    curl
-    jq
+    (writeShellScriptBin "bloodhound-start" ''
+      set -euo pipefail
+
+      if [ "$(id -u)" -ne 0 ]; then
+        echo "bloodhound-start must be run as root" >&2
+        exit 1
+      fi
+
+      echo "[*] Starting BloodHound stack..."
+      ${systemd}/bin/systemctl start postgresql
+      ${systemd}/bin/systemctl start postgresql-ensure-users
+      ${systemd}/bin/systemctl start neo4j
+      ${systemd}/bin/systemctl start bloodhound-ce
+
+      echo "[+] BloodHound stack started"
+    '')
+
+    (writeShellScriptBin "bloodhound-stop" ''
+      set -euo pipefail
+
+      if [ "$(id -u)" -ne 0 ]; then
+        echo "bloodhound-stop must be run as root" >&2
+        exit 1
+      fi
+
+      echo "[*] Stopping BloodHound stack..."
+      ${systemd}/bin/systemctl stop bloodhound-ce || true
+      ${systemd}/bin/systemctl stop neo4j || true
+      ${systemd}/bin/systemctl stop postgresql || true
+
+      echo "[+] BloodHound stack stopped"
+    '')
   ];
 }
