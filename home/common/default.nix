@@ -17,4 +17,8 @@
     ./history/metasploit
     ./history/hashcat
   ];
+
+  imports = [
+    ./firefox.nix 
+  ];
 }

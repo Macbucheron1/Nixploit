@@ -42,14 +42,14 @@ in
 
     home.packages =
       (with pkgs; [
-        firefox-bin
+        # firefox-bin
         myWordlists
         wireshark
         openvpn
       ]) ++ [
         fzf-wordlists
       ] ++ [
-        mac-nixos.packages.${pkgs.system}.nvim
+        mac-nixos.packages.${pkgs.stdenv.hostPlatform.system}.nvim
       ];
   };
 }

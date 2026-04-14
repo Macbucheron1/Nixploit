@@ -35,9 +35,14 @@
     };
 
     neo4j44pkgs.url = "github:NixOS/nixpkgs/7a339d87931bba829f68e94621536cad9132971a";
+
+    firefox-addons = {
+      url = "gitlab:rycee/nur-expressions?dir=pkgs/firefox-addons";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { nixpkgs, home-manager, nur, stylix, burpsuite-nix, mac-nixos, redflake-packages, neo4j44pkgs, ... }:
+  outputs = { nixpkgs, home-manager, nur, stylix, burpsuite-nix, mac-nixos, redflake-packages, neo4j44pkgs, firefox-addons, ... }:
     let
       system = "x86_64-linux";
 
@@ -47,7 +52,7 @@
       # ----------------
 
       incus-image = import ./incus {
-        inherit nixpkgs home-manager nur stylix burpsuite-nix mac-nixos redflake-packages neo4j44pkgs system username hostname;
+        inherit nixpkgs home-manager nur stylix burpsuite-nix mac-nixos redflake-packages neo4j44pkgs firefox-addons system username hostname;
       };
     in {
      packages.${system} = {

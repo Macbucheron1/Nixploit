@@ -30,3 +30,4 @@ alt tab
 ## To do 
 
 - wrapper
+- finish firefox personnalisation
