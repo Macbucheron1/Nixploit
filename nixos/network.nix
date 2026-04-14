@@ -7,7 +7,6 @@
   networking.hostName = lib.mkDefault hostname;
 
   networking.interfaces.eth0.useDHCP = lib.mkDefault true;
-  networking.nameservers = [ "1.1.1.1" "1.0.0.1" ];
 
   systemd.services.dhcpcd-var-run = {
     description = "Prepare /var/run for dhcpcd";

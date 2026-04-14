@@ -310,13 +310,4 @@ in
   # Optionnel: ouvre explicitement le port HTTP BloodHound
   # -------------------------------------------------------------------------
   networking.firewall.allowedTCPPorts = [ 9090 ];
-
-  # -------------------------------------------------------------------------
-  # Lisibilité / diagnostics
-  # -------------------------------------------------------------------------
-  environment.systemPackages = with pkgs; [
-    firefox
-    curl
-    jq
-  ];
 }
