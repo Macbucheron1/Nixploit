@@ -20,7 +20,7 @@
     ./gui.nix
     ./theme.nix
     redflake-packages.nixosModules.bloodhound-ce
-    (import ./bloodhound.nix { inherit config pkgs lib neo4j44pkgs; })
+    ./bloodhound.nix
     (import ./nix-patch.nix { inherit username; })
     (import ./users.nix { inherit username; })
     (import ./network.nix { inherit lib hostname; })
