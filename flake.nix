@@ -42,7 +42,7 @@
     };
   };
 
-  outputs = { nixpkgs, home-manager, nur, stylix, burpsuite-nix, mac-nixos, redflake-packages, neo4j44pkgs, firefox-addons, ... }:
+  outputs = inputs@{ nixpkgs, ... }:
     let
       system = "x86_64-linux";
 
@@ -82,7 +82,7 @@
       # ----------------
 
       incus-image = import ./incus {
-        inherit nixpkgs home-manager nur stylix burpsuite-nix mac-nixos redflake-packages neo4j44pkgs firefox-addons system nixploit;
+        inherit inputs system nixploit;
       };
     in {
      packages.${system} = {

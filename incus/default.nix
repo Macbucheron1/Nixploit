@@ -1,18 +1,16 @@
-{ nixpkgs, home-manager, nur, stylix, burpsuite-nix, mac-nixos, redflake-packages, neo4j44pkgs, firefox-addons, system, nixploit }:
+{ inputs, system, nixploit }:
 let
-  pkgs = import nixpkgs {
+  pkgs = import inputs.nixpkgs {
     inherit system;
     config.allowUnfree = true;
   };
 
-  mkHost = import ../lib/mkHost.nix {
-    inherit nixpkgs home-manager nur stylix burpsuite-nix mac-nixos redflake-packages neo4j44pkgs firefox-addons;
-  };
+  mkHost = import ../lib/mkHost.nix inputs;
 
   incusSystem = mkHost {
     inherit system nixploit;
     modules = [
-      "${nixpkgs}/nixos/modules/virtualisation/lxc-container.nix"
+      "${inputs.nixpkgs}/nixos/modules/virtualisation/lxc-container.nix"
     ];
   };
 
