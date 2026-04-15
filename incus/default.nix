@@ -1,4 +1,4 @@
-{ nixpkgs, home-manager, nur, stylix, burpsuite-nix, mac-nixos, redflake-packages, neo4j44pkgs, firefox-addons, system, username, hostname }:
+{ nixpkgs, home-manager, nur, stylix, burpsuite-nix, mac-nixos, redflake-packages, neo4j44pkgs, firefox-addons, system, username, uid, gid, hostname }:
 let
   pkgs = import nixpkgs {
     inherit system;
@@ -10,7 +10,7 @@ let
   };
 
   incusSystem = mkHost {
-    inherit system username hostname;
+    inherit system username uid gid hostname;
     modules = [
       "${nixpkgs}/nixos/modules/virtualisation/lxc-container.nix"
     ];

@@ -48,11 +48,13 @@
 
       # --- CHANGEME ---
       username = "user";
+      uid = 1000;
+      gid = 1000;
       hostname = "hostname";
       # ----------------
 
       incus-image = import ./incus {
-        inherit nixpkgs home-manager nur stylix burpsuite-nix mac-nixos redflake-packages neo4j44pkgs firefox-addons system username hostname;
+        inherit nixpkgs home-manager nur stylix burpsuite-nix mac-nixos redflake-packages neo4j44pkgs firefox-addons system username uid gid hostname;
       };
     in {
      packages.${system} = {

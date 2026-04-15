@@ -16,12 +16,6 @@ devices:
     source: /tmp/.X11-unix
     path: /mnt/.config/.X11-unix
 
-  xauthority:
-    type: disk
-    readonly: true
-    source: /home/mac/.Xauthority
-    path: /mnt/.config/.Xauthority
-
   opengl-driver:
     type: disk
     readonly: true

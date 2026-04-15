@@ -1,4 +1,4 @@
-{ username, ... }:
+{ username, uid, gid, ... }:
 {
   users.mutableUsers = false;
 
@@ -6,8 +6,12 @@
   users.users.root.password = "root";
   # ----------------
 
+  users.groups.${username}.gid = gid;
+
   users.users.${username} = {
     isNormalUser = true;
+    uid = uid;
+    group = username;
 
     # --- CHANGEME ---
     password = "user";

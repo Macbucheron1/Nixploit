@@ -3,13 +3,15 @@
   system,
   hostname,
   username,
+  uid,
+  gid,
   modules ? [ ],
   specialArgs ? { },
 }:
 nixpkgs.lib.nixosSystem {
   inherit system;
   specialArgs = specialArgs // {
-    inherit hostname username redflake-packages neo4j44pkgs firefox-addons;
+    inherit hostname username uid gid redflake-packages neo4j44pkgs firefox-addons;
   };
   modules = [
     ../nixos
