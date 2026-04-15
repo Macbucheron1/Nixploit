@@ -49,11 +49,7 @@
       # --- CHANGEME ---
       nixploit = {
         container = {
-          username = "user";
-          password = "user";
           rootPassword = "root";
-          uid = 1000;
-          gid = 1000;
           hostname = "hostname";
         };
 

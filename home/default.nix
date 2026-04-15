@@ -1,7 +1,5 @@
-{ nixploit, mac-nixos, pkgs, lib, ... }:
+{ mac-nixos, pkgs, lib, ... }:
 let
-  inherit (nixploit.container) username;
-
   # Custom wordlists. Search them in nixpkgs to add more or wrap them yourself
   myWordlists = pkgs.wordlists.override {
     lists = with pkgs; [
@@ -36,8 +34,8 @@ in
       concatHistory = import ../lib/concatHistory.nix { inherit pkgs lib; };
     };
 
-    home.username = username;
-    home.homeDirectory = "/home/${username}";
+    home.username = "root";
+    home.homeDirectory = "/root";
     home.stateVersion = "26.05";
 
     programs.home-manager.enable = true;

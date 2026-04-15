@@ -137,9 +137,56 @@ prepare_opengl_driver_bundle() {
   fi
   mkdir -p "${OPENGL_DRIVER_BUNDLE}"
 
-  # Materialize symlinks so container-mounted driver files do not depend on
-  # host store paths being visible inside the instance.
-  cp -aL /run/opengl-driver/. "${OPENGL_DRIVER_BUNDLE}/"
+  mkdir -p \
+    "${OPENGL_DRIVER_BUNDLE}/lib" \
+    "${OPENGL_DRIVER_BUNDLE}/OpenCL/vendors"
+
+  # Temporary runtime normalization for local tests. The image ABI only knows
+  # /mnt/runtime/gpu/{lib,OpenCL/vendors}; the future wrapper should populate
+  # that contract directly.
+  if [[ -d /run/opengl-driver/lib ]]; then
+    cp -aL /run/opengl-driver/lib/. "${OPENGL_DRIVER_BUNDLE}/lib/"
+  fi
+
+  if [[ -d /run/opengl-driver/etc/OpenCL/vendors ]]; then
+    cp -aL /run/opengl-driver/etc/OpenCL/vendors/. \
+      "${OPENGL_DRIVER_BUNDLE}/OpenCL/vendors/"
+  fi
+
+  ensure_bundle_writable
+  normalize_opencl_icds
+}
+
+ensure_bundle_writable() {
+  if [[ ! -w "${OPENGL_DRIVER_BUNDLE}" ]]; then
+    sudo chown -R "$(id -u):$(id -g)" "${OPENGL_DRIVER_BUNDLE}"
+  fi
+
+  if ! chmod -R u+rwX "${OPENGL_DRIVER_BUNDLE}" 2>/dev/null; then
+    sudo chown -R "$(id -u):$(id -g)" "${OPENGL_DRIVER_BUNDLE}"
+    sudo chmod -R u+rwX "${OPENGL_DRIVER_BUNDLE}"
+  fi
+}
+
+normalize_opencl_icds() {
+  local icd_dir="${OPENGL_DRIVER_BUNDLE}/OpenCL/vendors"
+  local icd_file raw_entry entry_basename normalized_entry
+
+  [[ -d "${icd_dir}" ]] || return 0
+
+  for icd_file in "${icd_dir}"/*.icd; do
+    [[ -f "${icd_file}" ]] || continue
+
+    raw_entry="$(grep -Ev '^\s*(#|$)' "${icd_file}" | head -n1 || true)"
+    [[ -n "${raw_entry}" ]] || continue
+
+    entry_basename="$(basename "${raw_entry}")"
+    normalized_entry="/mnt/runtime/gpu/lib/${entry_basename}"
+
+    if [[ -f "${OPENGL_DRIVER_BUNDLE}/lib/${entry_basename}" ]]; then
+      printf '%s\n' "${normalized_entry}" > "${icd_file}"
+    fi
+  done
 }
 
 check_firewall_dhcp() {
@@ -245,9 +292,202 @@ ensure_profile() {
   sudo sh -c "incus profile edit \"$name\" < \"$file\""
 }
 
+detect_wayland_socket() {
+  local runtime_dir="${XDG_RUNTIME_DIR:-}"
+  local display_name="${WAYLAND_DISPLAY:-}"
+  local candidate
+
+  if [[ -n "${runtime_dir}" && -n "${display_name}" ]]; then
+    candidate="${runtime_dir}/${display_name}"
+    [[ -S "${candidate}" ]] && {
+      printf '%s\n' "${candidate}"
+      return 0
+    }
+  fi
+
+  if [[ -n "${runtime_dir}" ]]; then
+    for candidate in \
+      "${runtime_dir}/wayland-0" \
+      "${runtime_dir}/wayland-1"; do
+      [[ -S "${candidate}" ]] && {
+        printf '%s\n' "${candidate}"
+        return 0
+      }
+    done
+  fi
+
+  return 1
+}
+
+detect_xauthority() {
+  local candidate runtime_dir authority_file xauthority_bundle
+
+  if command -v xauth >/dev/null 2>&1 && [[ -n "${DISPLAY:-}" ]]; then
+    mkdir -p "${CACHE_DIR}"
+    xauthority_bundle="${CACHE_DIR}/xauthority"
+    rm -f "${xauthority_bundle}"
+    touch "${xauthority_bundle}"
+    chmod 0600 "${xauthority_bundle}"
+
+    if xauth nlist "${DISPLAY}" 2>/dev/null \
+      | sed 's/^..../ffff/' \
+      | xauth -f "${xauthority_bundle}" nmerge - >/dev/null 2>&1 \
+      && [[ -s "${xauthority_bundle}" ]]; then
+      printf '%s\n' "${xauthority_bundle}"
+      return 0
+    fi
+
+    rm -f "${xauthority_bundle}"
+  fi
+
+  if command -v xauth >/dev/null 2>&1; then
+    authority_file="$(xauth info 2>/dev/null | awk -F': ' '/Authority file/ { print $2; exit }')"
+    if [[ -n "${authority_file}" && -f "${authority_file}" ]]; then
+      printf '%s\n' "${authority_file}"
+      return 0
+    fi
+  fi
+
+  for candidate in \
+    "${XAUTHORITY:-}" \
+    "${HOME:-}/.Xauthority"; do
+    [[ -n "${candidate}" && -f "${candidate}" ]] && {
+      printf '%s\n' "${candidate}"
+      return 0
+    }
+  done
+
+  runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+  if [[ -d "${runtime_dir}" ]]; then
+    for candidate in \
+      "${runtime_dir}/.mutter-Xwaylandauth."* \
+      "${runtime_dir}/.Xauthority" \
+      "${runtime_dir}/xauth_"* \
+      "${runtime_dir}/Xauthority"*
+    do
+      [[ -f "${candidate}" ]] && {
+        printf '%s\n' "${candidate}"
+        return 0
+      }
+    done
+  fi
+
+  return 1
+}
+
+has_x11_socket() {
+  local candidate
+
+  for candidate in /tmp/.X11-unix/X*; do
+    [[ -S "${candidate}" ]] && return 0
+  done
+
+  return 1
+}
+
+ensure_x11_access() {
+  has_x11_socket || return 0
+
+  if ! command -v xhost >/dev/null 2>&1; then
+    echo "GUI runtime warning: xhost is unavailable on the host; X11 clients may fail to authenticate." >&2
+    return 0
+  fi
+
+  if [[ -z "${DISPLAY:-}" ]]; then
+    echo "GUI runtime warning: DISPLAY is unset on the host; skipping X11 access grant." >&2
+    return 0
+  fi
+
+  if xhost +local: >/dev/null 2>&1; then
+    echo "GUI runtime: granted local X11 access with 'xhost +local:' for container clients."
+  else
+    echo "GUI runtime warning: failed to grant local X11 access with xhost." >&2
+  fi
+}
+
+render_gui_devices() {
+  local wayland_socket="${1:-}"
+  local xauthority_file="${2:-}"
+
+  if [[ -n "${wayland_socket}" ]]; then
+    cat <<EOF
+  wayland:
+    type: disk
+    readonly: true
+    source: ${wayland_socket}
+    path: /mnt/.config/wayland-0
+    shift: true
+
+EOF
+  fi
+
+  if has_x11_socket; then
+    cat <<'EOF'
+  x11-unix:
+    type: disk
+    readonly: true
+    source: /tmp/.X11-unix
+    path: /mnt/.config/.X11-unix
+    shift: true
+
+EOF
+  fi
+
+  if [[ -n "${xauthority_file}" ]]; then
+    cat <<EOF
+  xauthority:
+    type: disk
+    readonly: true
+    source: ${xauthority_file}
+    path: /mnt/.config/.Xauthority
+    shift: true
+
+EOF
+  fi
+}
+
 ensure_gpu_profile() {
+  local wayland_socket=""
+  local xauthority_file=""
+  local gui_devices=""
+
   incus_cmd profile show "${GPU_PROFILE_NAME}" >/dev/null 2>&1 || incus_cmd profile create "${GPU_PROFILE_NAME}"
-  sed "s|__OPENGL_DRIVER_BUNDLE__|${OPENGL_DRIVER_BUNDLE}|g" \
+
+  wayland_socket="$(detect_wayland_socket || true)"
+  xauthority_file="$(detect_xauthority || true)"
+  gui_devices="$(render_gui_devices "${wayland_socket}" "${xauthority_file}")"
+
+  if [[ -n "${wayland_socket}" ]]; then
+    echo "GUI runtime: Wayland socket detected at ${wayland_socket}."
+  else
+    echo "GUI runtime warning: no Wayland socket detected on the host." >&2
+  fi
+
+  if has_x11_socket; then
+    echo "GUI runtime: X11 socket directory detected at /tmp/.X11-unix."
+  else
+    echo "GUI runtime warning: no X11 socket detected under /tmp/.X11-unix." >&2
+  fi
+
+  if [[ -n "${xauthority_file}" ]]; then
+    echo "GUI runtime: Xauthority file detected at ${xauthority_file}."
+  else
+    echo "GUI runtime warning: no Xauthority file detected; X11 clients may fail to authenticate." >&2
+  fi
+
+  awk \
+    -v gui_devices="${gui_devices}" \
+    -v opengl_driver_bundle="${OPENGL_DRIVER_BUNDLE}" \
+    '
+      {
+        gsub(/__OPENGL_DRIVER_BUNDLE__/, opengl_driver_bundle)
+      }
+      /^__GUI_DEVICES__$/ {
+        printf "%s", gui_devices
+        next
+      }
+      { print }
+    ' \
     "${SCRIPT_DIR}/incus/gpu.yaml" | sudo incus profile edit "${GPU_PROFILE_NAME}"
 }
 
@@ -343,6 +583,7 @@ cmd_prepare_runtime() {
   ensure_profile "${GUI_PROFILE_NAME}" "${SCRIPT_DIR}/incus/profil.yaml"
 
   prepare_opengl_driver_bundle
+  ensure_x11_access
   ensure_gpu_profile
 }
 

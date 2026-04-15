@@ -1,4 +1,7 @@
 { config, pkgs, lib, nixploit, redflake-packages, neo4j44pkgs, ... }:
+let
+  runtimeContract = import ./runtime-contract.nix;
+in
 {
   boot.isContainer = true;
 
@@ -18,15 +21,14 @@
   ];
 
   imports = [
-    (import ./gui.nix { inherit nixploit; })
+    (import ./gui.nix { })
     ./theme.nix
     redflake-packages.nixosModules.bloodhound-ce
     ./bloodhound.nix
-    (import ./nix-patch.nix { inherit nixploit; })
+    (import ./nix-patch.nix { })
     (import ./users.nix { inherit nixploit; })
     (import ./network.nix { inherit lib nixploit; })
-    (import ./cap-patch.nix { inherit pkgs lib; })
-    (import ./gpu.nix { inherit pkgs lib; })
+    (import ./gpu.nix { inherit pkgs lib runtimeContract; })
   ];
 
   system.stateVersion = "25.05";

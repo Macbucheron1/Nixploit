@@ -3,21 +3,10 @@ devices:
   gpu:
     type: gpu
 
-  wayland:
-    type: disk
-    readonly: true
-    source: /run/user/1000/wayland-1
-    path: /mnt/.config/wayland-0
-    shift: true
-
-  x11-unix:
-    type: disk
-    readonly: true
-    source: /tmp/.X11-unix
-    path: /mnt/.config/.X11-unix
+__GUI_DEVICES__
 
   opengl-driver:
     type: disk
     readonly: true
     source: __OPENGL_DRIVER_BUNDLE__
-    path: /mnt/opengl-driver
+    path: /mnt/runtime/gpu

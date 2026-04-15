@@ -1,4 +1,7 @@
-{ pkgs, lib, ... }:
+{ pkgs, lib, runtimeContract, ... }:
+let
+  inherit (runtimeContract.runtime) gpu;
+in
 {
   hardware.graphics.enable = true;
 
@@ -7,11 +10,13 @@
     clinfo
   ]);
 
-  environment.etc."OpenCL/vendors/nvidia.icd".text =
-    "/mnt/opengl-driver/lib/libnvidia-opencl.so.1\n";
+  environment.loginShellInit = ''
+    if [ -d ${gpu.libDir} ]; then
+      export LD_LIBRARY_PATH="${gpu.libDir}''${LD_LIBRARY_PATH:+:''${LD_LIBRARY_PATH}}"
+    fi
 
-  environment.sessionVariables = {
-    OPENCL_VENDOR_PATH = "/etc/OpenCL/vendors";
-    LD_LIBRARY_PATH = "/mnt/opengl-driver/lib";
-  };
+    if [ -d ${gpu.openclVendorDir} ]; then
+      export OPENCL_VENDOR_PATH="${gpu.openclVendorDir}"
+    fi
+  '';
 }

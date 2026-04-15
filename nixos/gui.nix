@@ -1,24 +1,26 @@
-{ nixploit }:
+{ ... }:
 let
-  inherit (nixploit.container) username uid;
+  runtimeDir = "/run/user/0";
 in
 {
   environment.variables = {
-    XDG_RUNTIME_DIR = "/run/user/${toString uid}";
+    XDG_RUNTIME_DIR = runtimeDir;
     _JAVA_AWT_WM_NONREPARENTING = "1";
   };
 
   environment.loginShellInit = ''
-    export XDG_RUNTIME_DIR=/run/user/${toString uid}
+    export XDG_RUNTIME_DIR=${runtimeDir}
+    unset WAYLAND_DISPLAY GDK_BACKEND MOZ_ENABLE_WAYLAND DISPLAY
 
-    if [ -e /run/user/${toString uid}/wayland-0 ]; then
+    if [ -e ${runtimeDir}/wayland-0 ]; then
       export WAYLAND_DISPLAY=wayland-0
       export MOZ_ENABLE_WAYLAND=1
       export GDK_BACKEND=wayland
     fi
 
-    if [ -e /tmp/.X11-unix/X0 ]; then
-      export DISPLAY=:0
+    x_socket="$(find /tmp/.X11-unix -maxdepth 1 -type s -name 'X*' | sort | head -n1)"
+    if [ -n "$x_socket" ]; then
+      export DISPLAY=":''${x_socket##*/X}"
     fi
 
     if [ -f /mnt/.config/.Xauthority ]; then
@@ -32,7 +34,7 @@ in
     after = [ "local-fs.target" ];
     serviceConfig.Type = "oneshot";
     script = ''
-      install -d -m 0700 -o ${username} -g ${username} /run/user/${toString uid}
+      install -d -m 0700 -o root -g root ${runtimeDir}
     '';
   };
 
@@ -43,15 +45,20 @@ in
     requires = [ "gui-runtime-dir.service" ];
     serviceConfig.Type = "oneshot";
     script = ''
-      install -d -m 0700 -o ${username} -g ${username} /run/user/${toString uid}
+      install -d -m 0700 -o root -g root ${runtimeDir}
       mkdir -p /tmp/.X11-unix
 
       if [ -e /mnt/.config/wayland-0 ]; then
-        ln -sf /mnt/.config/wayland-0 /run/user/${toString uid}/wayland-0
+        ln -sf /mnt/.config/wayland-0 ${runtimeDir}/wayland-0
       fi
 
-      if [ -e /mnt/.config/.X11-unix/X0 ]; then
-        ln -sf /mnt/.config/.X11-unix/X0 /tmp/.X11-unix/X0
+      for x_socket in /mnt/.config/.X11-unix/X*; do
+        [ -e "$x_socket" ] || continue
+        ln -sf "$x_socket" "/tmp/.X11-unix/''${x_socket##*/}"
+      done
+
+      if [ -f /mnt/.config/.Xauthority ]; then
+        chmod 0600 /mnt/.config/.Xauthority || true
       fi
     '';
   };

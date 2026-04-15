@@ -24,7 +24,7 @@ inputs.nixpkgs.lib.nixosSystem {
         inherit (inputs) mac-nixos firefox-addons;
       };
       nixpkgs.overlays = [ inputs.nur.overlays.default ];
-      home-manager.users.${nixploit.container.username} = {
+      home-manager.users.root = {
         imports = [
           ../home
           inputs.burpsuite-nix.homeManagerModules.default

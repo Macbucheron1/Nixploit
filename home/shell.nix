@@ -1,6 +1,5 @@
-{ nixploit, pkgs, lib, config, ... }:
+{ pkgs, lib, config, ... }:
 let 
-  inherit (nixploit.container) username;
   cfg = config.my;
   finalHistory = pkgs.concatText "pentest-history" (lib.attrValues cfg.histories);
 
@@ -11,7 +10,7 @@ in
 {
   programs.bash = {
     enable = true;
-    historyFile = "/home/${username}/.bash_history";
+    historyFile = "/root/.bash_history";
     bashrcExtra = ''
       # vim motion in the shell
       set -o vi

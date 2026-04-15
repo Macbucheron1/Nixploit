@@ -1,7 +1,4 @@
-{ nixploit, ... }:
-let
-  inherit (nixploit.container) username;
-in
+{ ... }:
 {
   # Make sur the nix daemon is started
   systemd.services.nix-daemon-socket-dir = {
@@ -9,7 +6,7 @@ in
     requiredBy = [ "nix-daemon.socket" ];
     before = [
       "nix-daemon.socket"
-      "home-manager-user.service"
+      "home-manager-root.service"
     ];
     after = [ "local-fs.target" ];
     unitConfig.DefaultDependencies = false;
@@ -20,7 +17,7 @@ in
       chmod 0755 /nix/var/nix/daemon-socket
     '';
   };
-  systemd.services."home-manager-${username}" = {
+  systemd.services."home-manager-root" = {
     requires = [
       "nix-daemon-socket-dir.service"
       "nix-daemon.socket"
