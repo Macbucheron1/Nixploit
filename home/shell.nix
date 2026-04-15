@@ -1,5 +1,6 @@
-{ username, pkgs, lib, config, ... }:
+{ nixploit, pkgs, lib, config, ... }:
 let 
+  inherit (nixploit.container) username;
   cfg = config.my;
   finalHistory = pkgs.concatText "pentest-history" (lib.attrValues cfg.histories);
 

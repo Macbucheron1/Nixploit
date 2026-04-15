@@ -1,4 +1,7 @@
-{ username, ... }:
+{ nixploit, ... }:
+let
+  inherit (nixploit.container) username;
+in
 {
   # Make sur the nix daemon is started
   systemd.services.nix-daemon-socket-dir = {

@@ -1,5 +1,7 @@
-{ username, mac-nixos, pkgs, lib, ... }:
+{ nixploit, mac-nixos, pkgs, lib, ... }:
 let
+  inherit (nixploit.container) username;
+
   # Custom wordlists. Search them in nixpkgs to add more or wrap them yourself
   myWordlists = pkgs.wordlists.override {
     lists = with pkgs; [

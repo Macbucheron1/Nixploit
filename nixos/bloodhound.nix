@@ -1,6 +1,7 @@
-{ config, pkgs, lib, neo4j44pkgs, ... }:
+{ config, pkgs, lib, neo4j44pkgs, nixploit, ... }:
 
 let
+  cfg = nixploit.services.bloodhound;
   neo4j_4_4_11 =
     neo4j44pkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system}.neo4j;
 
@@ -37,7 +38,7 @@ in
       local all       all        trust
       host  all       all        ::1/128       trust
       host  all       postgres   127.0.0.1/32  trust
-      host  all       bloodhound 127.0.0.1/32  trust
+      host  all       ${cfg.database.user} 127.0.0.1/32  trust
     '';
   };
 
@@ -56,31 +57,31 @@ in
 
       psql -d postgres <<'EOSQL'
         SELECT format(
-          'CREATE ROLE bloodhound WITH LOGIN PASSWORD %L CREATEDB',
-          'bloodhound'
+          'CREATE ROLE ${cfg.database.user} WITH LOGIN PASSWORD %L CREATEDB',
+          '${cfg.database.password}'
         )
         WHERE NOT EXISTS (
-          SELECT 1 FROM pg_roles WHERE rolname = 'bloodhound'
+          SELECT 1 FROM pg_roles WHERE rolname = '${cfg.database.user}'
         )
         \gexec
       EOSQL
 
       psql -d postgres <<'EOSQL'
-        SELECT 'CREATE DATABASE bloodhound OWNER bloodhound'
+        SELECT 'CREATE DATABASE ${cfg.database.name} OWNER ${cfg.database.user}'
         WHERE NOT EXISTS (
-          SELECT 1 FROM pg_database WHERE datname = 'bloodhound'
+          SELECT 1 FROM pg_database WHERE datname = '${cfg.database.name}'
         )
         \gexec
       EOSQL
 
-      psql -d postgres   -c "ALTER DATABASE bloodhound OWNER TO bloodhound;"
-      psql -d bloodhound -c "ALTER SCHEMA public OWNER TO bloodhound;"
-      psql -d bloodhound -c "GRANT USAGE, CREATE ON SCHEMA public TO bloodhound;"
-      psql -d bloodhound -c "GRANT ALL ON SCHEMA public TO bloodhound;"
-      psql -d bloodhound -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO bloodhound;"
-      psql -d bloodhound -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO bloodhound;"
-      psql -d bloodhound -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO bloodhound;"
-      psql -d bloodhound -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO bloodhound;"
+      psql -d postgres           -c "ALTER DATABASE ${cfg.database.name} OWNER TO ${cfg.database.user};"
+      psql -d ${cfg.database.name} -c "ALTER SCHEMA public OWNER TO ${cfg.database.user};"
+      psql -d ${cfg.database.name} -c "GRANT USAGE, CREATE ON SCHEMA public TO ${cfg.database.user};"
+      psql -d ${cfg.database.name} -c "GRANT ALL ON SCHEMA public TO ${cfg.database.user};"
+      psql -d ${cfg.database.name} -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${cfg.database.user};"
+      psql -d ${cfg.database.name} -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ${cfg.database.user};"
+      psql -d ${cfg.database.name} -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO ${cfg.database.user};"
+      psql -d ${cfg.database.name} -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO ${cfg.database.user};"
     '';
   };
 
@@ -125,8 +126,8 @@ in
 
     if [ ! -f /var/lib/neo4j/data/dbms/auth.ini ]; then
       ${pkgs.shadow.su}/bin/su -s /bin/sh -c \
-        'NEO4J_HOME=/var/lib/neo4j NEO4J_CONF=/var/lib/neo4j/conf ${lib.getExe' neo4j_4_4_11 "neo4j-admin"} set-initial-password "Password1337"' \
-        neo4j || true
+        'NEO4J_HOME=/var/lib/neo4j NEO4J_CONF=/var/lib/neo4j/conf ${lib.getExe' neo4j_4_4_11 "neo4j-admin"} set-initial-password "${cfg.neo4j.initialPassword}"' \
+        ${cfg.neo4j.user} || true
     fi
   '';
 
@@ -142,8 +143,8 @@ in
       logPath = "/var/log/bloodhound-ce/bloodhound.log";
 
       defaultAdmin = {
-        principalName = "admin";
-        password = "Password1337";
+        principalName = cfg.admin.username;
+        password = cfg.admin.password;
         expireNow = false;
       };
 
@@ -154,17 +155,17 @@ in
       createLocally = false;
       host = "127.0.0.1";
       port = "5432";
-      user = "bloodhound";
-      name = "bloodhound";
-      password = "bloodhound";
+      user = cfg.database.user;
+      name = cfg.database.name;
+      password = cfg.database.password;
     };
 
     neo4j = {
       host = "127.0.0.1";
       port = 7687;
-      database = "neo4j";
-      user = "neo4j";
-      password = "Password1337";
+      database = cfg.neo4j.database;
+      user = cfg.neo4j.user;
+      password = cfg.neo4j.password;
     };
   };
 

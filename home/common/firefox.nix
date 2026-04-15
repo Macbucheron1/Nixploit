@@ -39,7 +39,7 @@
             }
             {
               name = "Bloodhound";
-              url = "http://localhost:9090/ui/";
+              url = "http://localhost:9090/ui/login";
             }
             {
               name = "Wiki";

@@ -1,4 +1,7 @@
-{ username, uid }:
+{ nixploit }:
+let
+  inherit (nixploit.container) username uid;
+in
 {
   environment.variables = {
     XDG_RUNTIME_DIR = "/run/user/${toString uid}";

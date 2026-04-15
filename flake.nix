@@ -47,14 +47,42 @@
       system = "x86_64-linux";
 
       # --- CHANGEME ---
-      username = "user";
-      uid = 1000;
-      gid = 1000;
-      hostname = "hostname";
+      nixploit = {
+        container = {
+          username = "user";
+          password = "user";
+          rootPassword = "root";
+          uid = 1000;
+          gid = 1000;
+          hostname = "hostname";
+        };
+
+        services = {
+          bloodhound = {
+            admin = {
+              username = "admin";
+              password = "Password1337";
+            };
+
+            database = {
+              user = "bloodhound";
+              name = "bloodhound";
+              password = "bloodhound";
+            };
+
+            neo4j = {
+              user = "neo4j";
+              database = "neo4j";
+              password = "Password1337";
+              initialPassword = "Password1337";
+            };
+          };
+        };
+      };
       # ----------------
 
       incus-image = import ./incus {
-        inherit nixpkgs home-manager nur stylix burpsuite-nix mac-nixos redflake-packages neo4j44pkgs firefox-addons system username uid gid hostname;
+        inherit nixpkgs home-manager nur stylix burpsuite-nix mac-nixos redflake-packages neo4j44pkgs firefox-addons system nixploit;
       };
     in {
      packages.${system} = {

@@ -1,9 +1,12 @@
-{ username, uid, gid, ... }:
+{ nixploit, ... }:
+let
+  inherit (nixploit.container) username uid gid password rootPassword;
+in
 {
   users.mutableUsers = false;
 
   # --- CHANGEME ---
-  users.users.root.password = "root";
+  users.users.root.password = rootPassword;
   # ----------------
 
   users.groups.${username}.gid = gid;
@@ -14,7 +17,7 @@
     group = username;
 
     # --- CHANGEME ---
-    password = "user";
+    password = password;
     # ----------------
 
     extraGroups = [ "wheel" "video" "render" ];
