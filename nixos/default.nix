@@ -12,8 +12,6 @@ in
     "flakes"
   ];
 
-  nix.settings.sandbox = false;
-
   environment.systemPackages = with pkgs; [
     bashInteractive
     coreutils

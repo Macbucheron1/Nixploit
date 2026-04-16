@@ -67,8 +67,10 @@ in
         args = [ "http://127.0.0.1:9876" ];
       };
     };
+  };
 
-    };
+  programs.nix-index-database.comma.enable = true;
+
   home.file.".bash_history".source = finalHistory;
 
   programs.zellij.enable = true;

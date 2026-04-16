@@ -58,3 +58,4 @@ alt tab
 - host prechecks for `DISPLAY`, `XDG_RUNTIME_DIR`, Wayland/X11 sockets, and X11 auth viability
 - network mode selection 
 - vpn start 
+- shares nix store

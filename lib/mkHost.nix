@@ -28,6 +28,7 @@ inputs.nixpkgs.lib.nixosSystem {
         imports = [
           ../home
           inputs.burpsuite-nix.homeManagerModules.default
+          inputs.nix-index-database.homeModules.default
         ];
       };
     }
