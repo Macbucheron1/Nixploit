@@ -50,5 +50,12 @@ in
 
   home.file.".bash_history".source = finalHistory;
 
-  programs.zellij.enable = true;
+  programs.zellij = {
+    enable = true;
+    settings.theme = "default";
+    settings = {
+      show_startup_tips = false;
+      session_name = "default";
+    };
+  };
 }

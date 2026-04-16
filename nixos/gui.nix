@@ -1,7 +1,10 @@
 { runtimeContract, ... }:
 let
   inherit (runtimeContract.runtime) gui;
+  runtimeUser = "root";
+  runtimeGroup = "root";
   runtimeDir = "/run/user/0";
+  runtimeXAuthority = "${runtimeDir}/.Xauthority";
 in
 {
   environment.variables = {
@@ -20,13 +23,31 @@ in
       export GDK_BACKEND=wayland
     fi
 
-    x_socket="$(find /tmp/.X11-unix -maxdepth 1 -type s -name 'X*' | sort | head -n1)"
+    x_socket=""
+    for candidate in /tmp/.X11-unix/X*; do
+      [ -e "$candidate" ] || continue
+      if [ -S "$candidate" ]; then
+        x_socket="$candidate"
+        break
+      fi
+      target="$(readlink -f "$candidate" 2>/dev/null || true)"
+      if [ -n "$target" ] && [ -S "$target" ]; then
+        x_socket="$candidate"
+        break
+      fi
+    done
     if [ -n "$x_socket" ]; then
       export DISPLAY=":''${x_socket##*/X}"
     fi
 
-    if [ -f ${gui.xauthorityFile} ]; then
+    if [ -f ${runtimeXAuthority} ]; then
+      export XAUTHORITY=${runtimeXAuthority}
+    elif [ -f ${gui.xauthorityFile} ]; then
       export XAUTHORITY=${gui.xauthorityFile}
+    fi
+
+    if [ -n "$PS1" ] && [ "$PS1" = '\s-\v\$ ' ]; then
+      export PS1='[\u@\h:\w]# '
     fi
   '';
 
@@ -36,7 +57,7 @@ in
     after = [ "local-fs.target" ];
     serviceConfig.Type = "oneshot";
     script = ''
-      install -d -m 0700 -o root -g root ${runtimeDir}
+      install -d -m 0700 -o ${runtimeUser} -g ${runtimeGroup} ${runtimeDir}
     '';
   };
 
@@ -47,7 +68,7 @@ in
     requires = [ "gui-runtime-dir.service" ];
     serviceConfig.Type = "oneshot";
     script = ''
-      install -d -m 0700 -o root -g root ${runtimeDir}
+      install -d -m 0700 -o ${runtimeUser} -g ${runtimeGroup} ${runtimeDir}
       mkdir -p /tmp/.X11-unix
 
       if [ -e ${gui.waylandSocket} ]; then
@@ -60,8 +81,10 @@ in
       done
 
       if [ -f ${gui.xauthorityFile} ]; then
-        chmod 0600 ${gui.xauthorityFile} || true
+        install -m 0600 -o root -g root ${gui.xauthorityFile} ${runtimeXAuthority}
       fi
+
+      chown -h ${runtimeUser}:${runtimeGroup} ${runtimeDir}/wayland-0 ${runtimeDir} 2>/dev/null || true
     '';
   };
 }
