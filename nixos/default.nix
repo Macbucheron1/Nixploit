@@ -21,7 +21,7 @@ in
   ];
 
   imports = [
-    (import ./gui.nix { })
+    (import ./gui.nix { inherit runtimeContract; })
     ./theme.nix
     redflake-packages.nixosModules.bloodhound-ce
     ./bloodhound.nix

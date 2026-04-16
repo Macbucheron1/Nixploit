@@ -1,5 +1,6 @@
-{ ... }:
+{ runtimeContract, ... }:
 let
+  inherit (runtimeContract.runtime) gui;
   runtimeDir = "/run/user/0";
 in
 {
@@ -23,8 +24,8 @@ in
       export DISPLAY=":''${x_socket##*/X}"
     fi
 
-    if [ -f /mnt/.config/.Xauthority ]; then
-      export XAUTHORITY=/mnt/.config/.Xauthority
+    if [ -f ${gui.xauthorityFile} ]; then
+      export XAUTHORITY=${gui.xauthorityFile}
     fi
   '';
 
@@ -48,17 +49,17 @@ in
       install -d -m 0700 -o root -g root ${runtimeDir}
       mkdir -p /tmp/.X11-unix
 
-      if [ -e /mnt/.config/wayland-0 ]; then
-        ln -sf /mnt/.config/wayland-0 ${runtimeDir}/wayland-0
+      if [ -e ${gui.waylandSocket} ]; then
+        ln -sf ${gui.waylandSocket} ${runtimeDir}/wayland-0
       fi
 
-      for x_socket in /mnt/.config/.X11-unix/X*; do
+      for x_socket in ${gui.x11SocketDir}/X*; do
         [ -e "$x_socket" ] || continue
         ln -sf "$x_socket" "/tmp/.X11-unix/''${x_socket##*/}"
       done
 
-      if [ -f /mnt/.config/.Xauthority ]; then
-        chmod 0600 /mnt/.config/.Xauthority || true
+      if [ -f ${gui.xauthorityFile} ]; then
+        chmod 0600 ${gui.xauthorityFile} || true
       fi
     '';
   };

@@ -415,7 +415,7 @@ render_gui_devices() {
     type: disk
     readonly: true
     source: ${wayland_socket}
-    path: /mnt/.config/wayland-0
+    path: /mnt/runtime/gui/wayland-0
     shift: true
 
 EOF
@@ -427,7 +427,7 @@ EOF
     type: disk
     readonly: true
     source: /tmp/.X11-unix
-    path: /mnt/.config/.X11-unix
+    path: /mnt/runtime/gui/.X11-unix
     shift: true
 
 EOF
@@ -439,7 +439,7 @@ EOF
     type: disk
     readonly: true
     source: ${xauthority_file}
-    path: /mnt/.config/.Xauthority
+    path: /mnt/runtime/gui/.Xauthority
     shift: true
 
 EOF
