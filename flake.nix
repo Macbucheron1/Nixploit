@@ -85,12 +85,20 @@
       incus-image = import ./incus {
         inherit inputs system nixploit;
       };
+
+      pkgs = import nixpkgs { inherit system; };
+      wrapper = import ./wrapper { inherit pkgs; };
     in {
      packages.${system} = {
         default = incus-image.default;
         tarball = incus-image.tarball;
         metadata = incus-image.metadata;
         squashfs = incus-image.squashfs;
+        wrapper = wrapper.wrapper;
+      };
+
+      devShells.${system}.default = pkgs.mkShell {
+        packages = wrapper.devPackages;
       };
     };
 }
