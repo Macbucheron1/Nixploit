@@ -9,6 +9,7 @@ in
     _JAVA_AWT_WM_NONREPARENTING = "1";
   };
 
+  # When shell is launched this export all the GUI related env variables
   environment.loginShellInit = ''
     export XDG_RUNTIME_DIR=${runtimeDir}
     unset WAYLAND_DISPLAY GDK_BACKEND MOZ_ENABLE_WAYLAND DISPLAY

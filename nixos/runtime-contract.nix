@@ -1,4 +1,6 @@
 {
+  # Define the path where the image is expecting the files
+  # For GPU & GUI (wayland & x11)
   runtime = {
     root = "/mnt/runtime";
 

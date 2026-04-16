@@ -10,6 +10,7 @@ in
     clinfo
   ]);
 
+  # When entering a shell, export all GPU related variable
   environment.loginShellInit = ''
     if [ -d ${gpu.libDir} ]; then
       export LD_LIBRARY_PATH="${gpu.libDir}''${LD_LIBRARY_PATH:+:''${LD_LIBRARY_PATH}}"

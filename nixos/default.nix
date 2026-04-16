@@ -1,5 +1,6 @@
-{ config, pkgs, lib, nixploit, redflake-packages, neo4j44pkgs, ... }:
+{ pkgs, lib, nixploit, redflake-packages, ... }:
 let
+  # Get GPU & GUI path 
   runtimeContract = import ./runtime-contract.nix;
 in
 {

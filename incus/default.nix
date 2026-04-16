@@ -17,6 +17,7 @@ let
   metadataDrv = incusSystem.config.system.build.metadata;
   squashfsDrv = incusSystem.config.system.build.squashfs;
 
+  # Custom command to create a full image archive. Much slower then build meta dara & squashfs
   tarballDrv = pkgs.runCommand "incus-image.tar.xz"
     {
       nativeBuildInputs = [
