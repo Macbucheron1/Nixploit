@@ -46,29 +46,6 @@ in
     enableBashIntegration = true;
   };
 
-  programs.codex = {
-    enable = true;
-
-    settings.mcp_servers = {
-      nixos = {
-        type = "stdio";
-        command = "nix";
-        args = [ "run" "github:utensils/mcp-nixos" "--" ];
-      };
-
-      wiremcp = {
-        type = "stdio";
-        command = "${myCustomPkgs.wiremcp}/bin/wiremcp";
-      };
-
-      burp = {
-        type = "stdio";
-        command = "${pkgs.mcp-proxy}/bin/mcp-proxy";
-        args = [ "http://127.0.0.1:9876" ];
-      };
-    };
-  };
-
   programs.nix-index-database.comma.enable = true;
 
   home.file.".bash_history".source = finalHistory;
