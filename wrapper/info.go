@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
-func info() {
+func infoAction() error {
 	fmt.Println("info!")
+	return nil
 }

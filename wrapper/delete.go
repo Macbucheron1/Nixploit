@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
-func delete() {
+func deleteAction() error {
 	fmt.Println("delete!")
+	return nil
 }

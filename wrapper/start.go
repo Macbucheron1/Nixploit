@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
-func start() {
+func startAction(containerName string) error {
 	fmt.Println("start!")
+	return nil
 }

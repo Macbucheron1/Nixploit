@@ -13,7 +13,7 @@ func main() {
 	action := flag.String("action", "", "build | start | info | stop | delete")
 	debug := flag.Bool("debug", false, "More verbose output")
 	imageName := flag.String("image-name", "nixploit", "Name for the image in incus")
-	// containerName := flag.String("container-name", "", "Name for the container in incus")
+	containerName := flag.String("container-name", "", "Name for the container in incus")
 
 	flag.Parse()
 
@@ -28,19 +28,30 @@ func main() {
 
 	switch *action {
 	case "build":
-		err := buildAction(*imageName)
-		if err != nil {
+		if err := buildAction(*imageName); err != nil {
 			fmt.Printf("An error occured while building: %s\n", err)
 			os.Exit(1)
 		}
 	case "start":
-		start()
+		if err := startAction(*containerName); err != nil {
+			fmt.Printf("An error occured while starting: %s\n", err)
+			os.Exit(1)
+		}
 	case "info":
-		info()
+		if err := infoAction(); err != nil {
+			fmt.Printf("An error occured while getting information: %s\n", err)
+			os.Exit(1)
+		}
 	case "stop":
-		stop()
+		if err := stopAction(); err != nil {
+			fmt.Printf("An error occured while stopping: %s\n", err)
+			os.Exit(1)
+		}
 	case "delete":
-		delete()
+		if err := deleteAction(); err != nil {
+			fmt.Printf("An error occured while deleting: %s\n", err)
+			os.Exit(1)
+		}
 	default:
 		fmt.Println("wrong choice")
 	}
