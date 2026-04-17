@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"time"
+	"os"
 
 	"github.com/charmbracelet/log"
 )
@@ -18,15 +19,20 @@ func main() {
 
 	if *debug {
 		log.SetLevel(log.DebugLevel)
+		log.SetTimeFormat(time.TimeOnly)
+		log.SetReportCaller(true)
 	} else {
 		log.SetLevel(log.InfoLevel)
+		log.SetReportTimestamp(false)
 	}
-	log.SetReportCaller(true)
-	log.SetTimeFormat(time.TimeOnly)
 
 	switch *action {
 	case "build":
-		build(*imageName)
+		err := buildAction(*imageName)
+		if err != nil {
+			fmt.Printf("An error occured while building: %s\n", err)
+			os.Exit(1)
+		}
 	case "start":
 		start()
 	case "info":
@@ -38,5 +44,4 @@ func main() {
 	default:
 		fmt.Println("wrong choice")
 	}
-
 }
