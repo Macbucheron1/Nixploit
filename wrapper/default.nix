@@ -7,6 +7,7 @@ in
   wrapper = pkgs.buildGoModule {
     inherit pname version;
     src = ./.;
+    proxyVendor = true;
     vendorHash = null;
   };
 
