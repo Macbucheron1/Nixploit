@@ -4,8 +4,8 @@
 
 ## Prerequisite
 
-1. Make sur nix is installed. See [related documentation](https://nixos.org/download/)
-2. Make sur incus is installed. See [related documentation](https://linuxcontainers.org/incus/docs/main/installing/#installing)
+1. Make sur **nix** is installed. See [related documentation](https://nixos.org/download/)
+2. Make sur **incus** is installed. See [related documentation](https://linuxcontainers.org/incus/docs/main/installing/#installing)
 
 ## Quick start
 
@@ -32,4 +32,9 @@ nix develop
 ## TODO
 
 - [ ] Fix multiple TODO in wrapper
+    - [ ] Network
+    - [ ] GUI
+    - [ ] GPU
 - [ ] Add git and it's variable to the flake 
+- [ ] Make github pipeline to release the wrapper at each tag
+
