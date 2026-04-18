@@ -52,6 +52,7 @@ func askYesNo(title string) (bool, error) {
 }
 
 // Get the current container state
+// Possible state: Running, Stopped, Frozen or Error
 // return an error if the container does not exist
 func getContainerState (containerName string) (string, error){
 	// Connect to the incus daemon
