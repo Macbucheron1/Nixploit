@@ -5,6 +5,5 @@ import (
 )
 
 func infoAction() error {
-	fmt.Println("info!")
-	return nil
+	return fmt.Errorf("Not implemented")
 }
