@@ -20,7 +20,7 @@ func main() {
 			if debug {
 				log.SetLevel(log.DebugLevel)
 				log.SetTimeFormat(time.TimeOnly)
-				log.SetReportTimestamp(false)
+				log.SetReportTimestamp(true)
 				log.SetReportCaller(true)
 			} else {
 				log.SetLevel(log.InfoLevel)
@@ -35,26 +35,27 @@ func main() {
 
 	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "More verbose output")
 
-	var imageName string
+	var buildImageName string
 	buildCmd := &cobra.Command{
 		Use:   "build",
 		Short: "Build and import a nixploit image",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return buildAction(imageName)
+			return buildAction(buildImageName)
 		},
 	}
-	buildCmd.Flags().StringVar(&imageName, "image-name", "nixploit", "Name for the image in incus")
+	buildCmd.Flags().StringVar(&buildImageName, "image", "nixploit", "Name for the image in incus")
 
-	var containerName string
+	var startImageName string
 	startCmd := &cobra.Command{
-		Use:   "start",
+		Use:   "start <container-name>",
 		Short: "Start a nixploit container",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return startAction(containerName)
+			containerName := args[0]
+			return startAction(containerName, startImageName)
 		},
 	}
-	startCmd.Flags().StringVar(&containerName, "container-name", "", "Name for the container in incus")
-	_ = startCmd.MarkFlagRequired("container-name")
+	startCmd.Flags().StringVar(&startImageName, "image", "nixploit", "Name for the image in incus")
 
 	infoCmd := &cobra.Command{
 		Use:   "info",
@@ -65,18 +66,22 @@ func main() {
 	}
 
 	stopCmd := &cobra.Command{
-		Use:   "stop",
+		Use:   "stop <container-name>",
 		Short: "Stop nixploit instance",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return stopAction()
+			containerName := args[0]
+			return stopAction(containerName)
 		},
 	}
 
 	deleteCmd := &cobra.Command{
-		Use:   "delete",
+		Use:   "delete <container-name>",
 		Short: "Delete nixploit instance",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return deleteAction()
+			containerName := args[0]
+			return deleteAction(containerName)
 		},
 	}
 

@@ -62,7 +62,7 @@ func buildSquashfs() (string, error) {
 func importImage(metadataPath, squashfsPath, imageName string) error {
 	// uses the default unix socket for incus
 	log.Debug("Try to connect to the incus daemon")
-	server, err := incus.ConnectIncusUnix("", nil)
+	server, err := getIncusServer()
 	if err != nil {
 		log.Error("Could not connect to incus socket")
 		return err

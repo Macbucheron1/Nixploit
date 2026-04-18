@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func stopAction() error {
+func stopAction(containerName string) error {
 	fmt.Println("stop!")
 	return nil
 }

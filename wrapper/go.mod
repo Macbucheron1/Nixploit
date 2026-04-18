@@ -5,6 +5,7 @@ go 1.26.1
 require (
 	charm.land/fang/v2 v2.0.1
 	github.com/charmbracelet/log v1.0.0
+	github.com/lxc/incus v0.7.0
 	github.com/lxc/incus/v6 v6.23.0
 	github.com/spf13/cobra v1.10.2
 )
