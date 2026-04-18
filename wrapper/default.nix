@@ -7,7 +7,7 @@ in
   wrapper = pkgs.buildGoModule {
     inherit pname version;
     src = ./.;
-    vendorHash = "sha256-P3qXV0FslSP6xDybxjVSzYrohfup+a7Cuj5K+z4dEhs=";
+    vendorHash = "sha256-+PoDjFmc8aHvyp9WXXtz8IB/95pN5wI1vIsjPyQJwnM=";
   };
 
   devPackages = with pkgs; [

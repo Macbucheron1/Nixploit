@@ -139,7 +139,7 @@ func importImage(metadataPath, squashfsPath, imageName string) error {
 
 
 	// Actually import the image
-	log.Info("Importing the image")
+	log.Info("Importing the image, can take some time...")
 	operation, err := server.CreateImage(image, &args)
 	if err != nil {
 		log.Error(fmt.Sprintf("Could not create the image: %s", err))

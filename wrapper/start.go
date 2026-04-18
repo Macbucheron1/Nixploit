@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"	
+	"time"
 
 	"github.com/charmbracelet/log"
 	"github.com/lxc/incus/v6/client"
@@ -64,7 +65,7 @@ func controlSocketHandler(control *websocket.Conn) {
 }
 
 func startAction(containerName, imageName string) error {
-	log.Debug(fmt.Sprintf("Starting container named %s using %s's image", containerName, imageName))
+	log.Infof("Starting container named %s using %s's image", containerName, imageName)
 
 	// Make sur everything is ok 
 	log.Debug("Checking if the process is in a terminal and trying to get terminal size")
@@ -82,9 +83,19 @@ func startAction(containerName, imageName string) error {
 	if doesImageExist, err := imageExistInIncus(imageName); err != nil {
 		return err
 	} else if !doesImageExist {
-		log.Error("There is no image for that name. Make sur you built it")
-		// TODO: prompt for build 
-		return fmt.Errorf("No image for that name")
+		log.Error("No image for that name")
+		doBuild, err := askYesNo("Do you want to build the image ?")
+		if err != nil {
+			log.Errorf("While asking to build the image: %s", err)
+			return err
+		}
+		if !doBuild {
+			log.Info("Exiting")
+			return nil
+		}
+		if err := buildAction(imageName); err != nil {
+			return err
+		}
 	}
 
 	// Connect to the incus daemon
@@ -162,22 +173,30 @@ func startAction(containerName, imageName string) error {
 
 	// Execute the shell
 	log.Debug("Executing the shell")
-	operation, err := server.ExecInstance(containerName, execRequest, &execArgs)
-	if err != nil {
-		log.Errorf("While opening a shell in %s", containerName)
-		return err
-	}
-	log.Debug("Shell opened successfully")
+	for i := range 10 {
+		execArgs.DataDone = make(chan bool)
 
-	// Is the process dead (the shell) ?
-	err = operation.Wait()
-	if err != nil {
-		log.Debugf("while waiting for the end of the process: %s", err)
-		return err
-	}
+		operation, err := server.ExecInstance(containerName, execRequest, &execArgs)
+		if err != nil {
+			log.Errorf("While opening a shell in %s", containerName)
+			return err
+		}
+		log.Debug("Shell opened successfully")
 
-	// Are all the I/O empty ? (sockets / pipes) wait if not
-	<-execArgs.DataDone
-	log.Debug("Shell has been closed")
+		// Is the process dead (the shell) ?
+		err = operation.Wait()
+		if err == nil {
+			// Are all the I/O empty ? (sockets / pipes) wait if not
+			<-execArgs.DataDone
+			log.Debug("Shell has been closed")
+			return nil
+		}
+		if !strings.Contains(err.Error(), "Command not found") || i == 9 {
+			log.Errorf("while waiting for the end of the process: %s", err)
+			return err
+		}
+		log.Debug("Shell not ready yet, retrying...")
+		time.Sleep(time.Second)
+	}
 	return nil
 }

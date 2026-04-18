@@ -10,6 +10,7 @@ import (
 
 	"github.com/charmbracelet/log"
 	"github.com/lxc/incus/v6/client"
+	"github.com/charmbracelet/huh"
 )
 
 var (
@@ -26,6 +27,27 @@ func getIncusServer() (incus.InstanceServer, error) {
 		server, serverErr = incus.ConnectIncusUnix("", nil)
 	})
 	return server, serverErr
+}
+
+// Ask Yes or no in a nice TUI way
+func askYesNo(title string) (bool, error) {
+	var confirmed bool
+
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewConfirm().
+				Title(title).
+				Affirmative("Yes").
+				Negative("No").
+				Value(&confirmed),
+		),
+	)
+
+	if err := form.Run(); err != nil {
+		return false, err
+	}
+
+	return confirmed, nil
 }
 
 // Compute the Fingerprint of an image without importing it to incus
