@@ -122,7 +122,7 @@ func startAction(containerName, imageName string) error {
 	}
 
 	// Create the instance
-	// TODO: apply profil to get GPU & GUI info
+	// TODO: apply profil to get GPU / GUI / Network
 	log.Info("Creating the instance")
 	if operation, err := server.CreateInstance(instance); err != nil {
 		if strings.Contains(err.Error(), "already exists"){

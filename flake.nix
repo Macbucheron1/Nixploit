@@ -90,7 +90,7 @@
       wrapper = import ./wrapper { inherit pkgs; };
     in {
      packages.${system} = {
-        default = incus-image.default;
+        default = wrapper.wrapper;
         tarball = incus-image.tarball;
         metadata = incus-image.metadata;
         squashfs = incus-image.squashfs;
