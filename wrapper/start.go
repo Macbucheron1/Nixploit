@@ -64,6 +64,9 @@ func controlSocketHandler(control *websocket.Conn) {
 	)
 }
 
+// Start a container. 
+// If the container does not exist use imageName as the image
+// If the container exist and is stopped, start it
 func startAction(containerName, imageName string) error {
 	log.Infof("Starting container named %s using %s's image", containerName, imageName)
 
@@ -119,12 +122,25 @@ func startAction(containerName, imageName string) error {
 	}
 
 	// Create the instance
+	// TODO: apply profil to get GPU & GUI info
 	log.Info("Creating the instance")
 	if operation, err := server.CreateInstance(instance); err != nil {
 		if strings.Contains(err.Error(), "already exists"){
 			log.Warn("The container already exists")
-			log.Warn("Opening the shell anyways")
-			// TODO: start the container if it is stopped
+
+			// TODO check if the container is using an nixploit image
+
+			// Check if the container is stopped and if so, start it
+			log.Debug("Checking current container state")
+			if state, err := getContainerState(containerName); err != nil {
+				return err
+			} else if strings.Compare(state, "Stopped") == 0 {
+				log.Debugf("Container is stopped, restarting it")
+				if err := setContainerState(containerName, "start"); err != nil {
+					return err
+				}
+			}
+
 		} else {
 			log.Error(fmt.Sprintf("Error while creating the instance: %s", err))
 			return err

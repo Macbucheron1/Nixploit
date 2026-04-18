@@ -12,11 +12,14 @@ import (
 	"github.com/lxc/incus/v6/shared/api"
 )
 
+// Build the metadata using nix
 func buildMetadata() (string, error) {
 	log.Info("Building metadata, Should be quick...")
+	// TODO: build local and retry online if needed (to github:Macbucheron1/nixploit#metadata)
 	nixBuildMetadataCmd := exec.Command("nix", "build", "..#metadata", "--print-out-paths", "--no-link")
 
 	// Get a path like /nix/store/zid9hqq29ih3ycrdwmarm83q1zkgrasm-tarball
+	// TODO: better handling in cas of error. Right now if there is an error we only see "Exit status 1."
 	metadataDir, err := nixBuildMetadataCmd.Output()
 	if err != nil {
 		log.Error("command failed", "err", err)
@@ -24,6 +27,7 @@ func buildMetadata() (string, error) {
 	}
 
 	// Try to find the actual tarball located at /nix/store/...-tarball/tarball/*.tar.xz
+	// TODO: make sur there is only one result
 	metadataDirStr := strings.TrimSpace(string(metadataDir))
 	pattern := filepath.Join(string(metadataDirStr), "tarball/", "*.tar.xz")
 	matches, err := filepath.Glob(pattern)
@@ -41,11 +45,14 @@ func buildMetadata() (string, error) {
 	return metadataPath, nil
 }
 
+// Build the squashfs file using nix
 func buildSquashfs() (string, error) {
 	log.Info("Building squashfs, can take some time...")
+	// TODO: build local and retry online if needed (to github:Macbucheron1/nixploit#squashfs)
 	nixBuildSquashfsCmd := exec.Command("nix", "build", "..#squashfs", "--print-out-paths", "--no-link")
 
 	// Get a path like /nix/store/idi4d5hfy6yvhnbxvjfdhd201wl0ni0x-nixos-lxc-image-x86_64-linux
+	// TODO: better handling in cas of error. Right now if there is an error we only see "Exit status 1."
 	squashfsDir, err := nixBuildSquashfsCmd.Output()
 	if err != nil {
 		log.Error("command failed", "err", err)
@@ -53,12 +60,14 @@ func buildSquashfs() (string, error) {
 	}
 
 	// Build the actual squashfs path
+	// TODO: make a real check to see if it exists
 	squashfsDirStr := strings.TrimSpace(string(squashfsDir))
 	squashfsPath := filepath.Join(string(squashfsDirStr), "/nixos-lxc-image-x86_64-linux.squashfs")
 	log.Debug("Built squashfs", "squashfsPath", string(squashfsPath))
 	return squashfsPath, nil
 }
 
+// Import an image to incus using a metadata path, a squashfs path and a image name as the alias
 func importImage(metadataPath, squashfsPath, imageName string) error {
 	// uses the default unix socket for incus
 	log.Debug("Try to connect to the incus daemon")
@@ -137,7 +146,6 @@ func importImage(metadataPath, squashfsPath, imageName string) error {
 		return err
 	}
 
-
 	// Actually import the image
 	log.Info("Importing the image, can take some time...")
 	operation, err := server.CreateImage(image, &args)
@@ -153,8 +161,10 @@ func importImage(metadataPath, squashfsPath, imageName string) error {
 	return nil
 }
 
+// Build an image and import it to incus
 func buildAction(imageName string) error {
 	log.Debug("Building image", "imageName", imageName)
+	// TODO: prefix the imageName properly with nixploit-imageName
 
 	metadataPath, err := buildMetadata()
 	if err != nil {

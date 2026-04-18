@@ -14,7 +14,7 @@ func main() {
 	var debug bool
 
 	rootCmd := &cobra.Command{
-		Use:   "nixploit",
+		Use:   "nixploit-default",
 		Short: "Build and manage nixploit image through incus",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			if debug {
@@ -43,7 +43,7 @@ func main() {
 			return buildAction(buildImageName)
 		},
 	}
-	buildCmd.Flags().StringVar(&buildImageName, "image", "nixploit", "Name for the image in incus")
+	buildCmd.Flags().StringVar(&buildImageName, "image", "nixploit-default", "Name for the image in incus")
 
 	var startImageName string
 	startCmd := &cobra.Command{
@@ -55,7 +55,7 @@ func main() {
 			return startAction(containerName, startImageName)
 		},
 	}
-	startCmd.Flags().StringVar(&startImageName, "image", "nixploit", "Name for the image in incus")
+	startCmd.Flags().StringVar(&startImageName, "image", "nixploit-default", "Name for the image in incus")
 
 	infoCmd := &cobra.Command{
 		Use:   "info",
@@ -93,6 +93,8 @@ func main() {
 		deleteCmd,
 	)
 
+	// TODO: check if nix & incus are available
+	// TODO: check if the incus socket is available
 	if err := fang.Execute(context.Background(), rootCmd); err != nil {
 		os.Exit(1)
 	}

@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"sync"
 	"strings"
+	"sync"
 
+	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/log"
 	"github.com/lxc/incus/v6/client"
-	"github.com/charmbracelet/huh"
+	"github.com/lxc/incus/v6/shared/api"
 )
 
 var (
@@ -48,6 +49,55 @@ func askYesNo(title string) (bool, error) {
 	}
 
 	return confirmed, nil
+}
+
+// Get the current container state
+// return an error if the container does not exist
+func getContainerState (containerName string) (string, error){
+	// Connect to the incus daemon
+	log.Debug("Try to connect to the incus daemon")
+	server, err := getIncusServer()
+	if err != nil {
+		log.Error("Could not connect to incus socket")
+		return "", err
+	}
+	log.Debug("Successfully connected to the incus daemon")
+
+	log.Debugf("Getting %s state", containerName)
+	state, _, err := server.GetInstanceState(containerName)
+	if err != nil {
+		log.Errorf("While getting %s state: %s", containerName, err)
+		return "", err
+	}
+	log.Debugf("%s state is %s", containerName, state.Status)
+	return state.Status, nil
+}
+
+// Set the container to the selected state
+// Possible state: start, stop, restart, freeze, unfreeze
+// return an error if the container does not exist
+func setContainerState (containerName, newState string) error {
+	// Connect to the incus daemon
+	log.Debug("Try to connect to the incus daemon")
+	server, err := getIncusServer()
+	if err != nil {
+		log.Error("Could not connect to incus socket")
+		return err
+	}
+	log.Debug("Successfully connected to the incus daemon")
+
+	log.Debug("Updating container's state")
+	operation, err := server.UpdateInstanceState(containerName, api.InstanceStatePut{
+		Action: newState,
+		Timeout: 10,
+		Force: false,
+		Stateful: false,
+	}, "")
+	if err := operation.Wait(); err != nil {
+		log.Errorf("While waiting to update container state to %s: %s", newState, err)
+		return err
+	}
+	return nil
 }
 
 // Compute the Fingerprint of an image without importing it to incus
