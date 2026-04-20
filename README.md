@@ -35,6 +35,6 @@ nix develop
     - [ ] Network
     - [ ] GUI
     - [ ] GPU
-- [ ] Add git and it's variable to the flake 
+- [x] Add git 
 - [ ] Make github pipeline to release the wrapper at each tag
 
