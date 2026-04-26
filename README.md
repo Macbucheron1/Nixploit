@@ -4,8 +4,8 @@
 
 ## Prerequisite
 
-1. Make sur **nix** is installed. See [related documentation](https://nixos.org/download/)
-2. Make sur **incus** is installed. See [related documentation](https://linuxcontainers.org/incus/docs/main/installing/#installing)
+1. Make sure **nix** is installed. See [related documentation](https://nixos.org/download/)
+2. Make sure **incus** is installed. See [related documentation](https://linuxcontainers.org/incus/docs/main/installing/#installing)
 
 ## Quick start
 
@@ -40,4 +40,5 @@ nix develop
 - [ ] Talk about network options in the readme (allow firewall for the nixploit network to use dhcp port)
 - [ ] Talk about storage option in the readme
 - [ ] Make it possible to update profile while container is running
+- [ ] Test on other distribution with nix installed
 
