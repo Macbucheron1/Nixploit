@@ -46,16 +46,18 @@ func main() {
 	buildCmd.Flags().StringVar(&buildImageName, "image", "nixploit-default", "Name for the image in incus")
 
 	var startImageName string
+	var startNetwork string
 	startCmd := &cobra.Command{
 		Use:   "start <container-name>",
 		Short: "Start a nixploit container",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			containerName := args[0]
-			return startAction(containerName, startImageName)
+			return startAction(containerName, startImageName, startNetwork)
 		},
 	}
 	startCmd.Flags().StringVar(&startImageName, "image", "nixploit-default", "Name for the image in incus")
+	startCmd.Flags().StringVar(&startNetwork, "network", "bridge", "Network for the container: bridge|none")
 
 	infoCmd := &cobra.Command{
 		Use:   "info",

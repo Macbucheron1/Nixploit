@@ -69,7 +69,7 @@ func buildSquashfs() (string, error) {
 
 // Import an image to incus using a metadata path, a squashfs path and a image name as the alias
 func importImage(metadataPath, squashfsPath, imageName string) error {
-	// uses the default unix socket for incus
+	// connect to the incus server
 	log.Debug("Try to connect to the incus daemon")
 	server, err := getIncusServer()
 	if err != nil {

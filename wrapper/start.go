@@ -67,7 +67,7 @@ func controlSocketHandler(control *websocket.Conn) {
 // Start a container. 
 // If the container does not exist use imageName as the image
 // If the container exist and is stopped, start it
-func startAction(containerName, imageName string) error {
+func startAction(containerName, imageName, networkChoice string) error {
 	log.Infof("Starting container named %s using %s's image", containerName, imageName)
 
 	// Make sur everything is ok 
@@ -110,6 +110,34 @@ func startAction(containerName, imageName string) error {
 	}
 	log.Debug("Successfully connected to the incus daemon")
 
+	// TODO: remove
+	var profiles []string
+	profiles = append(profiles, "default")
+
+	// Network choice
+	log.Debug("Adding the network choice")
+	switch networkChoice {
+	case "bridge":
+		if err := createNetworkBridge(); err != nil {
+			return err
+		}
+		if err := createNetworkBridgeProfile(); err != nil {
+			return err
+		}
+
+		log.Debug("Bridge network selected, adding profile")
+		profiles = append(profiles, "nixploit-net-bridge")
+	case "none":
+		break
+	default:
+		log.Errorf("%s is not a network option, choose between bridge & none", networkChoice)
+		return fmt.Errorf("Wrong network choice")
+	}
+	
+	// TODO: GUI choice
+
+	// TODO: GPU choice
+
 	// Instance option
 	instance := api.InstancesPost{
 		Name: containerName,
@@ -119,10 +147,12 @@ func startAction(containerName, imageName string) error {
 			Alias: imageName,
 		},
 		Type: "container",
+		InstancePut: api.InstancePut{
+			Profiles: profiles,
+		},
 	}
 
 	// Create the instance
-	// TODO: apply profil to get GPU / GUI / Network
 	log.Info("Creating the instance")
 	if operation, err := server.CreateInstance(instance); err != nil {
 		if strings.Contains(err.Error(), "already exists"){
@@ -152,7 +182,6 @@ func startAction(containerName, imageName string) error {
 		}
 	}
 	log.Info(fmt.Sprintf("Container %s successfully started !", containerName))
-
 
 	// Open a shell
 	execRequest := api.InstanceExecPost{

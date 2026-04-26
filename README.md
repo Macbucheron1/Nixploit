@@ -37,4 +37,6 @@ nix develop
     - [ ] GPU
 - [x] Add git 
 - [ ] Make github pipeline to release the wrapper at each tag
+- Talk about network options in the readme
+- Talk about storage option in the readme
 

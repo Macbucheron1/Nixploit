@@ -26,7 +26,7 @@ in
     ./bloodhound.nix
     (import ./nix-patch.nix { })
     (import ./users.nix { inherit nixploit; })
-    (import ./network.nix { inherit lib nixploit; })
+    (import ./network.nix { inherit pkgs lib nixploit; })
     (import ./gpu.nix { inherit pkgs lib runtimeContract; })
   ];
 
