@@ -57,41 +57,6 @@ func createProfile (name string, config api.ProfilePut) error {
 	return nil
 }
 
-func applyProfiles(containerName string, profiles []string) error {
-	// connect to the incus server
-	log.Debug("Try to connect to the incus daemon")
-	server, err := getIncusServer()
-	if err != nil {
-		log.Error("Could not connect to incus socket")
-		return err
-	}
-	log.Debug("Successfully connected to the incus daemon")
-
-	// Get to instance variable to prevent from overwrite
-	log.Debug("Get current instance variable")
-	instance, etag, err := server.GetInstance(containerName)
-	if err != nil {
-		log.Errorf("While getting instance: %s", err)
-		return err
-	}
-	config := instance.Writable()
-
-	// Update the instance with the profiles
-	log.Debugf("Updating %s with those profiles: %s", containerName, profiles)
-	config.Profiles = profiles
-	operation, err := server.UpdateInstance(containerName, config, etag)
-	if err != nil {
-		log.Errorf("While updating instance: %s", err)
-		return err
-	}
-	if err := operation.Wait(); err != nil {
-		log.Errorf("While waiting to update instance: %s", err)
-		return err
-	}
-
-	return nil
-}
-
 // Create the network nixploit-net-bridge
 func createNetworkBridge() error {
 	// connect to the incus server
@@ -148,7 +113,7 @@ func createNetworkBridgeProfile() error {
 	// Create the configuration
 	config := api.ProfilePut{
 		Config: api.ConfigMap{},
-		Description: "",
+		Description: "Give access to the nixploit-net-bridge network",
 		Devices: api.DevicesMap{
 			"eth0": {
 				"type":    "nic",
@@ -165,8 +130,74 @@ func createNetworkBridgeProfile() error {
 	return nil
 }
 
-func createStorageBtrfs (){
+func createStorageBtrfs () error {
+	// connect to the incus server
+	log.Debug("Try to connect to the incus daemon")
+	server, err := getIncusServer()
+	if err != nil {
+		log.Error("Could not connect to incus socket")
+		return err
+	}
+	log.Debug("Successfully connected to the incus daemon")
 
+	// Check if the storage already exist
+	log.Debug("Checking if nixploit-storage-btrfs storage exist")
+	if storage, _, err := server.GetStoragePool("nixploit-storage-btrfs"); storage != nil {
+		log.Debug("nixploit-storage-btrfs storage already exist, skipping")
+		return nil
+	} else if !strings.Contains(err.Error(), "Storage pool not found"){
+		log.Errorf("While getting storage info: %s", err)
+		return err
+	}
+
+	// Create the storage
+	log.Debug("Creating the nixploit-storage-btrfs storage")
+	err = server.CreateStoragePool(api.StoragePoolsPost{
+		Name: "nixploit-storage-btrfs",
+		Driver: "btrfs",
+		StoragePoolPut: api.StoragePoolPut{
+			Config: api.ConfigMap{
+				"size": "30GiB",
+			},
+			Description: "Btrfs storage for nixploit",
+		},
+	})
+	if err != nil {
+		log.Errorf("While creating storage: %s", err)
+		return err
+	}
+
+	return nil
+
+}
+
+func createStorageBtrfsProfile () error {
+	// Check to see if the profile already exist
+	if result, err := thisProfileExist("nixploit-storage-btrfs"); err != nil{
+		return err
+	} else if result {
+		log.Debug("nixploit-storage-btrfs profile already exist, skipping")
+		return nil
+	}
+
+	// Create the configuration
+	config := api.ProfilePut{
+		Config: api.ConfigMap{},
+		Description: "Persistent storage for nixploit using btrfs",
+		Devices: api.DevicesMap{
+			"root": {
+				"type": "disk",
+				"pool": "nixploit-storage-btrfs",
+				"path": "/",
+			},
+		},
+	}
+
+	// Actually creating the profil
+	if err := createProfile("nixploit-storage-btrfs", config); err != nil {
+		return err
+	}
+	return nil
 
 }
 

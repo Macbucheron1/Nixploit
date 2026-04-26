@@ -32,11 +32,12 @@ nix develop
 ## TODO
 
 - [ ] Fix multiple TODO in wrapper
-    - [ ] Network
+    - [x] Network
     - [ ] GUI
     - [ ] GPU
 - [x] Add git 
 - [ ] Make github pipeline to release the wrapper at each tag
-- Talk about network options in the readme
-- Talk about storage option in the readme
+- [ ] Talk about network options in the readme (allow firewall for the nixploit network to use dhcp port)
+- [ ] Talk about storage option in the readme
+- [ ] Make it possible to update profile while container is running
 

@@ -83,6 +83,7 @@ func startAction(containerName, imageName, networkChoice string) error {
 	log.Debugf("This is a terminal of size %d/%d", width, height)
 
 	// Check it the required image is in incus storage
+	log.Debugf("Checking if the %s image is built in incus", imageName)
 	if doesImageExist, err := imageExistInIncus(imageName); err != nil {
 		return err
 	} else if !doesImageExist {
@@ -110,22 +111,28 @@ func startAction(containerName, imageName, networkChoice string) error {
 	}
 	log.Debug("Successfully connected to the incus daemon")
 
-	// TODO: remove
 	var profiles []string
-	profiles = append(profiles, "default")
+
+	log.Debug("Adding btrfs storage")
+	if err := createStorageBtrfs(); err != nil {
+		return err
+	}
+	if err := createStorageBtrfsProfile(); err != nil {
+		return err
+	}
+	profiles = append(profiles, "nixploit-storage-btrfs")
 
 	// Network choice
 	log.Debug("Adding the network choice")
 	switch networkChoice {
 	case "bridge":
+		log.Debug("Bridge network selected, adding profile")
 		if err := createNetworkBridge(); err != nil {
 			return err
 		}
 		if err := createNetworkBridgeProfile(); err != nil {
 			return err
 		}
-
-		log.Debug("Bridge network selected, adding profile")
 		profiles = append(profiles, "nixploit-net-bridge")
 	case "none":
 		break
