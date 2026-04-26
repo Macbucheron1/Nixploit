@@ -9,9 +9,13 @@
 
 ## Quick start
 
-1. Just launch it
 ```bash
-nix run github:Macbucheron1/nixploit
+# Clone the repository
+git clone https://github.com/Macbucheron1/Nixploit.git
+
+# Just launch the damn thing
+cd Nixploit
+nix run .
 ```
 
 ## Developpement setup
