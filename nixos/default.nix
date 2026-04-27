@@ -1,6 +1,6 @@
 { pkgs, lib, nixploit, redflake-packages, ... }:
 let
-  # Get GPU & GUI path 
+  # Get GPU runtime path
   runtimeContract = import ./runtime-contract.nix;
 in
 {
@@ -17,10 +17,11 @@ in
     bashInteractive
     coreutils
     busybox
+    xpra
   ];
 
   imports = [
-    (import ./gui.nix { inherit runtimeContract; })
+    ./xpra.nix
     ./theme.nix
     redflake-packages.nixosModules.bloodhound-ce
     ./bloodhound.nix
