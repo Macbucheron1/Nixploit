@@ -33,16 +33,35 @@ cd Nixploit
 nix develop
 ```
 
+## What & Why
+
+### Problem
+TODO
+
+### Nix
+TODO
+
+### Incus
+TODO
+
+### Golang
+TODO
+
 ## TODO
 
+### Wrapper
 - [ ] Fix multiple TODO in wrapper
     - [x] Network
     - [ ] GUI
     - [ ] GPU
-- [x] Add git 
-- [ ] Make github pipeline to release the wrapper at each tag
-- [ ] Talk about network options in the readme (allow firewall for the nixploit network to use dhcp port)
-- [ ] Talk about storage option in the readme
 - [ ] Make it possible to update profile while container is running
+- [x] Generate ssh using ssh.go and copy it in the container. Be careful wheter the key already exist, still check if the key is in the container
+### Image
+- [x] Add git 
+### Docs 
+- [ ] Talk about storage option in the readme
+- [ ] Talk about network options in the readme (allow firewall for the nixploit network to use dhcp port)
+### Other
+- [ ] Make github pipeline to release the wrapper at each tag
 - [ ] Test on other distribution with nix installed
 
