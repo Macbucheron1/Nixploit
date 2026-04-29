@@ -6,17 +6,17 @@ import (
 	"os/signal"
 	"strconv"
 	"strings"
-	"syscall"	
+	"syscall"
 	"time"
 
 	"github.com/charmbracelet/log"
+	"github.com/gorilla/websocket"
 	"github.com/lxc/incus/v6/client"
 	"github.com/lxc/incus/v6/shared/api"
 	"github.com/lxc/incus/v6/shared/termios"
-	"github.com/gorilla/websocket"
 )
 
-// send the size of the terminal in which this process executes to the web socket in json format 
+// send the size of the terminal in which this process executes to the web socket in json format
 // exemple :
 // {window-resize map[height:56 width:211] 0}
 func sendTermSize(control *websocket.Conn) error {
@@ -48,13 +48,15 @@ func controlSocketHandler(control *websocket.Conn) {
 		log.Warnf("Could not send initial terminal size: %v", err)
 	}
 
-	// Each time a SIGWINCH signal is sent, send the new size 
+	// Each time a SIGWINCH signal is sent, send the new size
 	for range ch {
 		log.Debug("New size detected, trying to update")
 		if err := sendTermSize(control); err != nil {
 			log.Warnf("Could not update terminal size: %v", err)
 			break
-		} else {log.Debug("Successfully updated the size")}
+		} else {
+			log.Debug("Successfully updated the size")
+		}
 	}
 
 	// Close the web socket when it's over
@@ -64,13 +66,13 @@ func controlSocketHandler(control *websocket.Conn) {
 	)
 }
 
-// Start a container. 
+// Start a container.
 // If the container does not exist use imageName as the image
 // If the container exist and is stopped, start it
 func startAction(containerName, imageName, networkChoice string) error {
 	log.Infof("Starting container named %s using %s's image", containerName, imageName)
 
-	// Make sur everything is ok 
+	// Make sur everything is ok
 	log.Debug("Checking if the process is in a terminal and trying to get terminal size")
 	if !termios.IsTerminal(int(syscall.Stdin)) || !termios.IsTerminal(int(syscall.Stdout)) {
 		log.Error("This has not been launched inside a TTY !")
@@ -140,17 +142,17 @@ func startAction(containerName, imageName, networkChoice string) error {
 		log.Errorf("%s is not a network option, choose between bridge & none", networkChoice)
 		return fmt.Errorf("Wrong network choice")
 	}
-	
+
 	// TODO: GUI choice
 
 	// TODO: GPU choice
 
 	// Instance option
 	instance := api.InstancesPost{
-		Name: containerName,
+		Name:  containerName,
 		Start: true,
 		Source: api.InstanceSource{
-			Type: "image",
+			Type:  "image",
 			Alias: imageName,
 		},
 		Type: "container",
@@ -162,7 +164,7 @@ func startAction(containerName, imageName, networkChoice string) error {
 	// Create the instance
 	log.Info("Creating the instance")
 	if operation, err := server.CreateInstance(instance); err != nil {
-		if strings.Contains(err.Error(), "already exists"){
+		if strings.Contains(err.Error(), "already exists") {
 			log.Warn("The container already exists")
 
 			// TODO check if the container is using an nixploit image
@@ -190,16 +192,21 @@ func startAction(containerName, imageName, networkChoice string) error {
 	}
 	log.Info(fmt.Sprintf("Container %s successfully started !", containerName))
 
+	log.Debug("Adding the ssh key to the container")
+	if err := addSshKey(containerName); err != nil {
+		return err
+	}
+
 	// Open a shell
 	execRequest := api.InstanceExecPost{
-		Command: []string{"/run/current-system/sw/bin/bash", "-il"},
-		WaitForWS: true,
+		Command:     []string{"/run/current-system/sw/bin/bash", "-il"},
+		WaitForWS:   true,
 		Interactive: true,
-		Width: width,
-		Height: height,
-		User: 0,
-		Group: 0,
-		Cwd: "/root",
+		Width:       width,
+		Height:      height,
+		User:        0,
+		Group:       0,
+		Cwd:         "/root",
 		Environment: map[string]string{
 			"TERM": os.Getenv("TERM"),
 		},
@@ -216,11 +223,11 @@ func startAction(containerName, imageName, networkChoice string) error {
 	}
 
 	execArgs := incus.InstanceExecArgs{
-		Stdin: os.Stdin,
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
-		DataDone: make(chan bool), // just to check if data operation are over 
-		Control: controlSocketHandler, // Function that will handles windows resize or signal
+		Stdin:    os.Stdin,
+		Stdout:   os.Stdout,
+		Stderr:   os.Stderr,
+		DataDone: make(chan bool),      // just to check if data operation are over
+		Control:  controlSocketHandler, // Function that will handles windows resize or signal
 	}
 
 	// Execute the shell

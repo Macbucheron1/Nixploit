@@ -40,7 +40,7 @@ func buildMetadata() (string, error) {
 		return "", fmt.Errorf("No tarball found")
 	}
 	metadataPath := matches[0]
-	
+
 	log.Debug("Built metadata", "metadataPath", string(metadataPath))
 	return metadataPath, nil
 }
@@ -98,12 +98,12 @@ func importImage(metadataPath, squashfsPath, imageName string) error {
 	image := api.ImagesPost{
 		Filename: filepath.Base(metadataPath),
 		Aliases: []api.ImageAlias{{
-			Name: imageName,
+			Name:        imageName,
 			Description: "A pentesting image based on nixos",
 		}},
 		ImagePut: api.ImagePut{
 			AutoUpdate: false,
-			Public: false,
+			Public:     false,
 			Properties: map[string]string{
 				"os":          "NixOS",
 				"variant":     "nixploit",
@@ -114,11 +114,11 @@ func importImage(metadataPath, squashfsPath, imageName string) error {
 
 	// Prepare the content of the image upload
 	args := incus.ImageCreateArgs{
-		MetaFile: metadataFile,
-		MetaName: filepath.Base(metadataPath),
+		MetaFile:   metadataFile,
+		MetaName:   filepath.Base(metadataPath),
 		RootfsFile: squashfsFile,
 		RootfsName: filepath.Base(squashfsPath),
-		Type: "container",
+		Type:       "container",
 	}
 
 	fingerprint, err := computeSplitImageFingerprint(metadataPath, squashfsPath)
@@ -127,11 +127,11 @@ func importImage(metadataPath, squashfsPath, imageName string) error {
 		return err
 	}
 
-	// If the image already exists, just add the name as an alias 
+	// If the image already exists, just add the name as an alias
 	img, _, err := server.GetImage(fingerprint)
 	if err == nil {
 		log.Debug("Image already exists", "fingerprint", img.Fingerprint)
-		err = server.CreateImageAlias(api.ImageAliasesPost{ 
+		err = server.CreateImageAlias(api.ImageAliasesPost{
 			ImageAliasesEntry: api.ImageAliasesEntry{
 				Name: imageName,
 				Type: "container",
@@ -164,6 +164,12 @@ func importImage(metadataPath, squashfsPath, imageName string) error {
 // Build an image and import it to incus
 func buildAction(imageName string) error {
 	log.Debug("Building image", "imageName", imageName)
+
+	if _, err := exec.LookPath("nix"); err != nil {
+		log.Errorf("Nix executable not found: %s", err)
+		return fmt.Errorf("nix executable not found: %w", err)
+	}
+
 	// TODO: prefix the imageName properly with nixploit-imageName
 
 	metadataPath, err := buildMetadata()

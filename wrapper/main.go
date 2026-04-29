@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
@@ -26,6 +27,30 @@ func main() {
 				log.SetLevel(log.InfoLevel)
 				log.SetReportTimestamp(false)
 				log.SetReportCaller(false)
+			}
+			log.Debug("Checking if the nixploit dir exist")
+			if dir, err := nixploitDir(); err != nil {
+				log.Errorf("While getting nixploit dir: %s", err)
+				os.Exit(1)
+			} else if exist, err := nixploitDirExists(); err != nil {
+				log.Errorf("While checking nixploit dir: %s", err)
+				os.Exit(1)
+			} else if !exist {
+				log.Error("It appear that you do not have a nixploit directory !")
+				log.Info("This is mandantory to build the image and to use gui features")
+				if resp, err := askYesNo(fmt.Sprintf("Create the nixploit directory at %s ?", dir)); err != nil || !resp {
+					os.Exit(1)
+				}
+				if err := createNixploitDir(); err != nil {
+					os.Exit(1)
+				}
+				log.Info("Nixploit also require to clone it's repository in it's directory")
+				if resp, err := askYesNo("Clone https://github.com/Macbucheron1/Nixploit in the nixploit dir ?"); err != nil || !resp {
+					os.Exit(1)
+				}
+				if err := cloneNixploitRepo(); err != nil {
+					os.Exit(1)
+				}
 			}
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
