@@ -36,7 +36,11 @@ func nixploitDirExists() (bool, error) {
 		return false, fmt.Errorf("stat nixploit dir: %w", err)
 	}
 
-	return info.IsDir(), nil
+	if !info.IsDir() {
+		return false, fmt.Errorf("nixploit path exists but is not a directory: %s", dir)
+	}
+
+	return true, nil
 }
 
 // Get the directory used to store nixploit ssh assets on the host
