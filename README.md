@@ -56,6 +56,7 @@ TODO
     - [ ] GPU
 - [ ] Make it possible to update profile while container is running
 - [x] Generate ssh using ssh.go and copy it in the container. Be careful wheter the key already exist, still check if the key is in the container
+- [ ] Launch xpra through the wrapper
 ### Image
 - [x] Add git 
 ### Docs 

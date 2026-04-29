@@ -16,7 +16,13 @@ import (
 func buildMetadata() (string, error) {
 	log.Info("Building metadata, Should be quick...")
 	// TODO: build local and retry online if needed (to github:Macbucheron1/nixploit#metadata)
-	nixBuildMetadataCmd := exec.Command("nix", "build", "..#metadata", "--print-out-paths", "--no-link")
+	gitDir, err := nixploitGitDir()
+	if err != nil {
+		log.Errorf("While getting nixploit git directory: %s", err)
+		return "", err
+	}
+	nixBuildMetadataCmd := exec.Command("nix", "build", ".#metadata", "--print-out-paths", "--no-link")
+	nixBuildMetadataCmd.Dir = gitDir
 
 	// Get a path like /nix/store/zid9hqq29ih3ycrdwmarm83q1zkgrasm-tarball
 	// TODO: better handling in cas of error. Right now if there is an error we only see "Exit status 1."
@@ -49,7 +55,13 @@ func buildMetadata() (string, error) {
 func buildSquashfs() (string, error) {
 	log.Info("Building squashfs, can take some time...")
 	// TODO: build local and retry online if needed (to github:Macbucheron1/nixploit#squashfs)
-	nixBuildSquashfsCmd := exec.Command("nix", "build", "..#squashfs", "--print-out-paths", "--no-link")
+	gitDir, err := nixploitGitDir()
+	if err != nil {
+		log.Errorf("While getting nixploit git directory: %s", err)
+		return "", err
+	}
+	nixBuildSquashfsCmd := exec.Command("nix", "build", ".#squashfs", "--print-out-paths", "--no-link")
+	nixBuildSquashfsCmd.Dir = gitDir
 
 	// Get a path like /nix/store/idi4d5hfy6yvhnbxvjfdhd201wl0ni0x-nixos-lxc-image-x86_64-linux
 	// TODO: better handling in cas of error. Right now if there is an error we only see "Exit status 1."
