@@ -251,6 +251,31 @@ func createNixploitDir() error {
 	return nil
 }
 
+// Check if the Nixploit repository has already been cloned into the data dir.
+func nixploitRepoExists() (bool, error) {
+	gitDir, err := nixploitGitDir()
+	if err != nil {
+		log.Errorf("While getting nixploit git directory: %s", err)
+		return false, err
+	}
+
+	gitMetadataDir := filepath.Join(gitDir, ".git")
+	info, err := os.Stat(gitMetadataDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		log.Errorf("While checking nixploit git metadata directory: %s", err)
+		return false, err
+	}
+
+	if !info.IsDir() {
+		return false, fmt.Errorf("nixploit git metadata path exists but is not a directory: %s", gitMetadataDir)
+	}
+
+	return true, nil
+}
+
 // Clone the Nixploit repository into the nixploit git directory
 func cloneNixploitRepo() error {
 	log.Debug("Cloning the repository")
@@ -266,21 +291,16 @@ func cloneNixploitRepo() error {
 		return err
 	}
 
-	gitMetadataDir := filepath.Join(gitDir, ".git")
-	if info, err := os.Stat(gitMetadataDir); err == nil {
-		if !info.IsDir() {
-			return fmt.Errorf("nixploit git metadata path exists but is not a directory: %s", gitMetadataDir)
-		}
-
+	if exists, err := nixploitRepoExists(); err != nil {
+		return err
+	} else if exists {
 		log.Debugf("Nixploit repository already exists at %s", gitDir)
 		return nil
-	} else if !os.IsNotExist(err) {
-		log.Errorf("While checking nixploit git metadata directory: %s", err)
-		return err
 	}
 
 	log.Debugf("Cloning Nixploit repository into %s", gitDir)
 
+	// TODO: put https when public
 	cmd := exec.Command(
 		"git",
 		"clone",

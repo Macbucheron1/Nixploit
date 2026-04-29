@@ -44,6 +44,15 @@ func main() {
 				if err := createNixploitDir(); err != nil {
 					os.Exit(1)
 				}
+			} else if err := createNixploitDir(); err != nil {
+				os.Exit(1)
+			}
+
+			log.Debug("Checking if the nixploit repository is cloned")
+			if exist, err := nixploitRepoExists(); err != nil {
+				log.Errorf("While checking nixploit repository: %s", err)
+				os.Exit(1)
+			} else if !exist {
 				log.Info("Nixploit also require to clone it's repository in it's directory")
 				if resp, err := askYesNo("Clone https://github.com/Macbucheron1/Nixploit in the nixploit dir ?"); err != nil || !resp {
 					os.Exit(1)
