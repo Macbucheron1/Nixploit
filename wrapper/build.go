@@ -177,9 +177,8 @@ func importImage(metadataPath, squashfsPath, imageName string) error {
 func buildAction(imageName string) error {
 	log.Debug("Building image", "imageName", imageName)
 
-	if _, err := exec.LookPath("nix"); err != nil {
-		log.Errorf("Nix executable not found: %s", err)
-		return fmt.Errorf("nix executable not found: %w", err)
+	if !isNixThere() {
+		return fmt.Errorf("Could not find nix binary")
 	}
 
 	// TODO: prefix the imageName properly with nixploit-imageName

@@ -280,6 +280,10 @@ func nixploitRepoExists() (bool, error) {
 func cloneNixploitRepo() error {
 	log.Debug("Cloning the repository")
 
+	if !isGitThere() {
+		return fmt.Errorf("Could not find git binary")
+	}
+
 	gitDir, err := nixploitGitDir()
 	if err != nil {
 		log.Errorf("While getting nixploit git directory: %s", err)
@@ -318,4 +322,28 @@ func cloneNixploitRepo() error {
 
 	log.Debugf("Nixploit repository cloned into %s", gitDir)
 	return nil
+}
+
+func isNixThere () bool {
+	if _, err := exec.LookPath("nix"); err != nil {
+		log.Errorf("Nix executable not found: %s", err)
+		return false
+	}
+	return true
+}
+
+func isGitThere () bool {
+	if _, err := exec.LookPath("git"); err != nil {
+		log.Errorf("Git executable not found: %s", err)
+		return false
+	}
+	return true
+}
+
+func isXpraThere () bool {
+	if _, err := exec.LookPath("xpra"); err != nil {
+		log.Errorf("Xpra executable not found: %s", err)
+		return false
+	}
+	return true
 }

@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/log"
 	incus "github.com/lxc/incus/v6/client"
@@ -263,31 +264,44 @@ func addSshKey(containerName string) error {
 	log.Debug("Successfully connected to the incus daemon")
 
 	log.Debug("Creating /root/.ssh directory in the container")
-	err = server.CreateInstanceFile(containerName, "/root/.ssh", incus.InstanceFileArgs{
-		Content:   strings.NewReader(""),
-		UID:       0,
-		GID:       0,
-		Mode:      0700,
-		Type:      "directory",
-		WriteMode: "overwrite",
-	})
-	if err != nil {
-		log.Errorf("While creating /root/.ssh directory: %s", err)
-		return err
+	for i := range 10 {
+		err = server.CreateInstanceFile(containerName, "/root/.ssh", incus.InstanceFileArgs{
+			Content:   strings.NewReader(""),
+			UID:       0,
+			GID:       0,
+			Mode:      0700,
+			Type:      "directory",
+			WriteMode: "overwrite",
+		})
+		if err != nil {
+			if !strings.Contains(err.Error(), "Not Found") || i == 9 {
+				log.Errorf("While creating /root/.ssh directory: %s", err)
+				return err
+			} else {
+				log.Debug("Container not ready yet, retrying...")
+				time.Sleep(time.Second)
+			}
+		}
 	}
 
 	log.Debug("Adding public ssh key to /root/.ssh/authorized_keys")
-	err = server.CreateInstanceFile(containerName, "/root/.ssh/authorized_keys", incus.InstanceFileArgs{
-		Content:   bytes.NewReader(publicKeyContent),
-		UID:       0,
-		GID:       0,
-		Mode:      0600,
-		Type:      "file",
-		WriteMode: "overwrite",
-	})
-	if err != nil {
-		log.Errorf("While adding public ssh key to authorized_keys: %s", err)
-		return err
+	for i := range 10 {
+		err = server.CreateInstanceFile(containerName, "/root/.ssh/authorized_keys", incus.InstanceFileArgs{
+			Content:   bytes.NewReader(publicKeyContent),
+			UID:       0,
+			GID:       0,
+			Mode:      0600,
+			Type:      "file",
+			WriteMode: "overwrite",
+		})
+		if err != nil {
+			if !strings.Contains(err.Error(), "Not Found") || i == 9 {
+				log.Errorf("While adding public ssh key to authorized_keys: %s", err)
+				return err
+			}
+			log.Debug("Container not ready, retrying...")
+			time.Sleep(time.Second)
+		}
 	}
 
 	log.Debug("Successfully added ssh key to the container")
