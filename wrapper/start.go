@@ -69,7 +69,7 @@ func controlSocketHandler(control *websocket.Conn) {
 // Start a container.
 // If the container does not exist use imageName as the image
 // If the container exist and is stopped, start it
-func startAction(containerName, imageName, networkChoice string) error {
+func startAction(containerName, imageName, networkChoice string, noGuiChoice bool) error {
 	log.Infof("Starting container named %s using %s's image", containerName, imageName)
 
 	// Make sur everything is ok
@@ -143,9 +143,13 @@ func startAction(containerName, imageName, networkChoice string) error {
 		return fmt.Errorf("Wrong network choice")
 	}
 
-	// TODO: GUI choice
-
 	// TODO: GPU choice
+
+	// TODO: fix this once using unix socket
+	if !noGuiChoice && networkChoice != "bridge" {
+		log.Errorf("You cannot have no network and use XPRA")
+		return fmt.Errorf("You cannot have no network and use XPRA")
+	}
 
 	// Instance option
 	instance := api.InstancesPost{
@@ -162,7 +166,7 @@ func startAction(containerName, imageName, networkChoice string) error {
 	}
 
 	// Create the instance
-	log.Info("Creating the instance")
+	log.Debug("Creating the instance")
 	if operation, err := server.CreateInstance(instance); err != nil {
 		if strings.Contains(err.Error(), "already exists") {
 			log.Warn("The container already exists")
@@ -196,6 +200,10 @@ func startAction(containerName, imageName, networkChoice string) error {
 	if err := addSshKey(containerName); err != nil {
 		return err
 	}
+
+	if !noGuiChoice {
+		go xpraConnect(containerName)
+	} 
 
 	// Open a shell
 	execRequest := api.InstanceExecPost{

@@ -81,17 +81,19 @@ func main() {
 
 	var startImageName string
 	var startNetwork string
+	var startNoGui bool
 	startCmd := &cobra.Command{
 		Use:   "start <container-name>",
 		Short: "Start a nixploit container",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			containerName := args[0]
-			return startAction(containerName, startImageName, startNetwork)
+			return startAction(containerName, startImageName, startNetwork, startNoGui)
 		},
 	}
 	startCmd.Flags().StringVar(&startImageName, "image", "nixploit-default", "Name for the image in incus")
 	startCmd.Flags().StringVar(&startNetwork, "network", "bridge", "Network for the container: bridge|none")
+	startCmd.Flags().BoolVar(&startNoGui, "no-gui", false,"Disable xpra, you will not be able to launch your gui apps")
 
 	infoCmd := &cobra.Command{
 		Use:   "info",
@@ -129,7 +131,6 @@ func main() {
 		deleteCmd,
 	)
 
-	// TODO: check if nix & incus are available
 	// TODO: check if the incus socket is available
 	if err := fang.Execute(context.Background(), rootCmd); err != nil {
 		os.Exit(1)
