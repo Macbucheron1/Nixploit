@@ -5,6 +5,8 @@ in
 {
   hardware.graphics.enable = true;
 
+
+
   environment.systemPackages = lib.mkAfter (with pkgs; [
     ocl-icd
     clinfo

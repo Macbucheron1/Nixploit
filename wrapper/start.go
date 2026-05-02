@@ -69,7 +69,7 @@ func controlSocketHandler(control *websocket.Conn) {
 // Start a container.
 // If the container does not exist use imageName as the image
 // If the container exist and is stopped, start it
-func startAction(containerName, imageName, networkChoice string, noGuiChoice bool) error {
+func startAction(containerName, imageName, networkChoice string, noGuiChoice, noGpuChoice bool) error {
 	log.Infof("Starting container named %s using %s's image", containerName, imageName)
 
 	// Make sur everything is ok
@@ -144,7 +144,14 @@ func startAction(containerName, imageName, networkChoice string, noGuiChoice boo
 	}
 
 	// TODO: GPU choice
-
+	log.Debug("Adding GPU choice")
+	if !noGpuChoice {
+		log.Debug("Adding the gpu")
+		if err := addGpu(containerName); err != nil {
+			return err
+		}
+	} 
+	
 	// TODO: fix this once using unix socket
 	if !noGuiChoice && networkChoice != "bridge" {
 		log.Errorf("You cannot have no network and use XPRA")
