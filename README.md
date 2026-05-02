@@ -71,3 +71,6 @@ TODO
 - [ ] network put none by default 
 - [ ] use a different bridge for each 
 - [ ] make sur ipv6 Router Advertisement is disabled on nixploit network
+    - https://linuxcontainers.org/incus/docs/main/explanation/security/#bridged-nic-security
+- [ ] Disallow BPF
+    - https://linuxcontainers.org/incus/docs/main/explanation/bpf-tokens/
