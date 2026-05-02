@@ -1,4 +1,0 @@
-description: GUI runtime profile for nixploit
-config:
-  security.privileged: "false"
-

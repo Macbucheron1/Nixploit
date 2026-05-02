@@ -1,6 +1,0 @@
-description: Storage profile for pentest container
-devices:
-  root:
-    type: disk
-    pool: nixploit-storage
-    path: /
