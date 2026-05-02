@@ -69,5 +69,5 @@ TODO
 - [ ] use a passphrase for the ssh key
 - [ ] XPRA host key checking ? check how they do on mofos
 - [ ] network put none by default 
-
+- [ ] use a different bridge for each 
 
