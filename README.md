@@ -5,7 +5,7 @@
 ## Prerequisite
 
 > [!CAUTION]
-> This was not only tested on nixos
+> This was not only tested on nixos but _should_ work on any distribution with the prerequisite
 
 1. Make sure **nix** is installed. See [related documentation](https://nixos.org/download/)
 2. Make sure **incus** is installed. See [related documentation](https://linuxcontainers.org/incus/docs/main/installing/#installing)
