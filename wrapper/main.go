@@ -82,20 +82,20 @@ func main() {
 	var startImageName string
 	var startNetwork string
 	var startNoGui bool
-	var startNoGpu bool
+	var startGpu bool
 	startCmd := &cobra.Command{
 		Use:   "start <container-name>",
 		Short: "Start a nixploit container",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			containerName := args[0]
-			return startAction(containerName, startImageName, startNetwork, startNoGui, startNoGpu)
+			return startAction(containerName, startImageName, startNetwork, startNoGui, startGpu)
 		},
 	}
 	startCmd.Flags().StringVar(&startImageName, "image", "nixploit-default", "Name for the image in incus")
 	startCmd.Flags().StringVar(&startNetwork, "network", "bridge", "Network for the container: bridge|none")
-	startCmd.Flags().BoolVar(&startNoGui, "no-gui", false,"Disable xpra, you will not be able to launch your gui apps")
-	startCmd.Flags().BoolVar(&startNoGpu, "no-gpu", false, "Disable GPU usage in incus")
+	startCmd.Flags().BoolVar(&startNoGui, "no-gui", false, "Disable xpra, you will not be able to launch your gui apps")
+	startCmd.Flags().BoolVar(&startGpu, "gpu", false, "Enable GPU usage in incus")
 
 	infoCmd := &cobra.Command{
 		Use:   "info",
