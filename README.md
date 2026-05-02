@@ -4,6 +4,9 @@
 
 ## Prerequisite
 
+> [!CAUTION]
+> This was not only tested on nixos
+
 1. Make sure **nix** is installed. See [related documentation](https://nixos.org/download/)
 2. Make sure **incus** is installed. See [related documentation](https://linuxcontainers.org/incus/docs/main/installing/#installing)
 
