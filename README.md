@@ -70,4 +70,4 @@ TODO
 - [ ] XPRA host key checking ? check how they do on mofos
 - [ ] network put none by default 
 - [ ] use a different bridge for each 
-
+- [ ] make sur ipv6 Router Advertisement is disabled on nixploit network
