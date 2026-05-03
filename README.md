@@ -64,6 +64,8 @@ TODO
 ### Other
 - [ ] Make github pipeline to release the wrapper at each tag
 - [ ] Test on other distribution with nix installed
+    - Fedora
+    - Debian
 ### Security 
 - [ ] use a passphrase for the ssh key
 - [ ] XPRA host key checking ? check how they do on mofos
