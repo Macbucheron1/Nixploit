@@ -59,6 +59,8 @@ TODO
 - [x] Launch xpra through the wrapper
 - [ ] Make a connection test before XPRA for network troubleshooting 
 - [ ] Add automatic firewall rules 
+- [ ] print error made by sub command (like nix)
+- [ ] clone using https instead of ssh
 
 ### Image
 - [x] Add git 
