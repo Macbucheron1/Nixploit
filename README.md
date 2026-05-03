@@ -9,6 +9,7 @@
 
 1. Make sure **nix** is installed. See [related documentation](https://nixos.org/download/)
 2. Make sure **incus** is installed. See [related documentation](https://linuxcontainers.org/incus/docs/main/installing/#installing)
+3. Your user needs to ben un the _incus-admin_ group
 
 ## Quick start
 
@@ -55,7 +56,10 @@ TODO
     - [ ] GPU
 - [ ] Make it possible to update profile while container is running
 - [x] Generate ssh using ssh.go and copy it in the container. Be careful wheter the key already exist, still check if the key is in the container
-- [ ] Launch xpra through the wrapper
+- [x] Launch xpra through the wrapper
+- [ ] Make a connection test before XPRA for network troubleshooting 
+- [ ] Add automatic firewall rules 
+
 ### Image
 - [x] Add git 
 ### Docs 
