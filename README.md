@@ -9,7 +9,16 @@
 
 1. Make sure **nix** is installed. See [related documentation](https://nixos.org/download/)
 2. Make sure **incus** is installed. See [related documentation](https://linuxcontainers.org/incus/docs/main/installing/#installing)
-3. Your user needs to ben un the _incus-admin_ group
+3. Your user needs to ben un the `incus-admin` group
+4. Your firewall must not block the `nixploit-net-b`
+On nixos for exemple:
+```nix
+networking.firewall.interfaces."nixploit-net-b" = {
+    allowedUDPPorts = [ 53 67 ];
+    allowedTCPPorts = [ 53 ];
+};
+```
+TODO: add exemples for iptables & nftables
 
 ## Quick start
 
