@@ -9,7 +9,7 @@
 
 1. Make sure **nix** is installed. See [related documentation](https://nixos.org/download/)
 2. Make sure **incus** is installed. See [related documentation](https://linuxcontainers.org/incus/docs/main/installing/#installing)
-3. Your user needs to ben un the `incus-admin` group
+3. Your user needs to be in the `incus-admin` group
 4. Your firewall must not block the `nixploit-net-b`
 On nixos for exemple:
 ```nix
