@@ -73,6 +73,7 @@ TODO
 
 ### Image
 - [x] Add git 
+- [ ] Pull the image from the release 
 ### Docs 
 - [ ] Talk about storage option in the readme
 - [ ] Talk about network options in the readme (allow firewall for the nixploit network to use dhcp port)
