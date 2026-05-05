@@ -1,28 +1,26 @@
-name: Build tarball
+name: Image release
 
 on:
   push:
-    branches:
-      - main
-
-  workflow_dispatch:
+    tags:
+      - 'v*'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  build-tarball:
-    name: Build Nix tarball
+  release-tarball:
+    name: Build and publish release
     runs-on: [self-hosted, Linux, X64]
 
-    if: >
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+    if: startsWith(github.ref, 'refs/tags/v')
 
     env:
       NIX_CONFIG: |
         experimental-features = nix-command flakes
         accept-flake-config = true
+      GH_TOKEN: ${{ github.token }}
+      ASSET_NAME: nixploit-default.tar.xz
 
     steps:
       - name: Checkout
@@ -32,16 +30,17 @@ jobs:
         run: |
           nix build .#tarball -L --out-link result
 
-      - name: Prepare artifact
+      - name: Prepare release asset
         run: |
           mkdir -p artifacts
-          cp -vL result artifacts/nixploit-default.tar.xz
-          ls -lh artifacts/nixploit-default.tar.xz
+          cp -vL result "artifacts/${ASSET_NAME}"
+          ls -lh "artifacts/${ASSET_NAME}"
 
-      - name: Upload tarball
-        uses: actions/upload-artifact@v4
-        with:
-          name: nixploit-default-tarball
-          path: artifacts/nixploit-default.tar.xz
-          if-no-files-found: error
-          retention-days: 7
+      - name: Create GitHub release
+        run: |
+          nix shell nixpkgs#gh -c gh release create "${GITHUB_REF_NAME}" \
+            "artifacts/${ASSET_NAME}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "${GITHUB_REF_NAME}" \
+            --generate-notes \
+            --verify-tag
