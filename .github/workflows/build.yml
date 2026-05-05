@@ -1,0 +1,48 @@
+name: Build tarball
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-tarball:
+    name: Build Nix tarball
+    runs-on: [self-hosted, Linux, X64]
+
+    if: >
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+
+    env:
+      NIX_CONFIG: |
+        experimental-features = nix-command flakes
+        accept-flake-config = true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build tarball
+        run: |
+          nix build .#tarball -L --out-link result
+
+      - name: Prepare artifact
+        run: |
+          mkdir -p artifacts
+          cp -vL result artifacts/nixploit-default.tar.gz
+          file artifacts/nixploit-default.tar.gz
+          ls -lh artifacts/nixploit-default.tar.gz
+
+      - name: Upload tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: nixploit-default-tarball
+          path: artifacts/nixploit-default.tar.gz
+          if-no-files-found: error
+          retention-days: 7
